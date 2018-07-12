@@ -5,7 +5,7 @@ implicit none
 real(dp), intent(in) :: p(nb,nb)
 real(dp), intent(out) :: maxdm(nab)
 
-integer(i4b) :: i, j, sh1, sh2, ao1, ao2, ab1
+integer(i4b) :: i, sh1, sh2, ao1, ao2, ab1
 
 do i=1,nss
   sh1=ssprs(1,i)

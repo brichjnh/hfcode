@@ -5,7 +5,7 @@ implicit none
 character(len=30), intent(in) :: infile
 real(dp), parameter :: bohr=1.889725989_dp
 character(len=10) :: bla
-character(len=1) :: domp2,docc,dohuckel,douhf,dodensup,dolevshft, dodirect
+character(len=1) :: domp2,docc,douhf,dodensup,dolevshft, dodirect
 integer(i4b) :: i,j
 
 open(unit=8,file=infile)
@@ -58,11 +58,6 @@ else
     ccenergy=.false.
 end if
 read(8,*) bla,prtlevl
-!read(8,*) bla,nprtsh
-!allocate(prsh(4,nprtsh))
-!do i=1,nprtsh
-!  read (8,*) prsh(:,i)
-!end do
 read(8,*) bla,ncore
 allocate(atlabels(natom),nuccharges(natom),atznumber(natom),atcoords(natom,3))
 allocate(angcoords(natom,3))

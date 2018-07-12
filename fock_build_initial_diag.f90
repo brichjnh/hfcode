@@ -8,7 +8,6 @@ real(dp), intent(in) :: p(nb,nb), thr
 real(dp), intent(inout) :: f(nb,nb)
 
 integer(i4b) :: i, j, k, l, ii, ia, ja, ka, la, sh1, sh2, ao1, ao2
-logical(lgt) :: diis, sameatab, sameabab, allsame, sameij, samejk, samekl
 real(dp) :: essss, espsp(3,3), esdsd(5,5), epppp(3,3,3,3), edddd(5,5,5,5), fac
 real(dp) :: eslsl(4,4), eplpl(3,4,3,4), ellll(4,4,4,4), epdpd(3,5,3,5), edldl(5,4,5,4)
 
@@ -48,7 +47,10 @@ do ii=1,nss
     end if
   end if
 end do
+if (nss.gt.0) then
 call index_sort(nss,schwss,orderss)
+call find_threshold(nss,schwss,orderss,shthresh,lastss)
+end if
 
 do ii=1,nsp
   sh1=spprs(1,ii)
@@ -91,7 +93,10 @@ do ii=1,nsp
     end do
   end do
 end do
+if (nsp.gt.0) then
 call index_sort(nsp,schwsp,ordersp)
+call find_threshold(nsp,schwsp,ordersp,shthresh,lastsp)
+end if
 
 do ii=1,nsd
   sh1=sdprs(1,ii)
@@ -134,7 +139,10 @@ do ii=1,nsd
     end do
   end do
 end do
+if (nsd.gt.0) then
 call index_sort(nsd,schwsd,ordersd)
+call find_threshold(nsd,schwsd,ordersd,shthresh,lastsd)
+end if
 
 do ii=1,nsl
   sh1=slprs(1,ii)
@@ -177,7 +185,10 @@ do ii=1,nsl
     end do
   end do
 end do
+if (nsl.gt.0) then
 call index_sort(nsl,schwsl,ordersl)
+call find_threshold(nsl,schwsl,ordersl,shthresh,lastsl)
+end if
 
 do ii=1,npp
   sh1=ppprs(1,ii)
@@ -330,7 +341,10 @@ do ii=1,npp
   end if  ! finished the if
 
 end do ! the 'do' over pp shell pairs
+if (npp.gt.0) then
 call index_sort(npp,schwpp,orderpp)
+call find_threshold(npp,schwpp,orderpp,shthresh,lastpp)
+end if
 
 do ii=1,npd
   sh1=pdprs(1,ii)
@@ -380,7 +394,10 @@ do ii=1,npd
     end do
   end do
 end do
+if (npd.gt.0) then
 call index_sort(npd,schwpd,orderpd)
+call find_threshold(npd,schwpd,orderpd,shthresh,lastpd)
+end if
 
 do ii=1,npl
   sh1=plprs(1,ii)
@@ -430,7 +447,10 @@ do ii=1,npl
     end do
   end do
 end do
+if (npl.gt.0) then
 call index_sort(npl,schwpl,orderpl)
+call find_threshold(npl,schwpl,orderpl,shthresh,lastpl)
+end if
 
 do ii=1,ndd
   sh1=ddprs(1,ii)
@@ -600,7 +620,10 @@ do ii=1,ndd
   end if
 
 end do ! the 'do' over dd shell pairs
+if (ndd.gt.0) then
 call index_sort(ndd,schwdd,orderdd)
+call find_threshold(ndd,schwdd,orderdd,shthresh,lastdd)
+end if
 
 !return
 
@@ -652,7 +675,10 @@ do ii=1,ndl
     end do
   end do
 end do
+if (ndl.gt.0) then
 call index_sort(ndl,schwdl,orderdl)
+call find_threshold(ndl,schwdl,orderdl,shthresh,lastdl)
+end if
 
 
 do ii=1,nll
@@ -780,7 +806,10 @@ do ii=1,nll
   end if
 
 end do ! the 'do' over ll shell pairs
+if (nll.gt.0) then
 call index_sort(nll,schwll,orderll)
+call find_threshold(nll,schwll,orderll,shthresh,lastll)
+end if
 
 ! Still needed: pd, dd, and dl shells. But those are for later
 

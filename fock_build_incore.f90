@@ -6,7 +6,7 @@ real(dp), intent(in) :: p(nb,nb)
 real(dp), intent(inout) :: f(nb,nb)
 
 integer(i4b) :: ij,kl,ijkl,ia,ja,ka,la
-logical(lgt) :: sameabab, allsame, sameij, samejk, samekl
+logical(lgt) :: sameabab, allsame, sameij, samekl
 real(dp) :: fac
 
 kl=1; ij=1

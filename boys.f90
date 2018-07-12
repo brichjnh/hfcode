@@ -45,7 +45,7 @@ implicit none
 real(dp), intent(in) :: x
 real(dp), intent(out) :: fn(0:1)
 
-integer(i4b) :: i,j
+integer(i4b) :: j
 real(dp) :: sqrtx
 real(dp), parameter :: vsmall = 1.d-15
 real(dp), parameter :: boys_longrange  = 28._dp
@@ -78,7 +78,7 @@ implicit none
 real(dp), intent(in) :: x
 real(dp), intent(out) :: fn(0:2)
 
-integer(i4b) :: i,j
+integer(i4b) :: j
 real(dp) :: efac, sqrtx
 real(dp), parameter :: vsmall = 1.d-15
 real(dp), parameter :: boys_longrange  = 28._dp

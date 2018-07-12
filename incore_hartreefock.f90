@@ -5,10 +5,10 @@ implicit none
 integer(i4b), parameter :: maxiter=50, ndiis=5
 real(dp) :: f(nb,nb),fprim(nb,nb), cmat(nb,nb), p(nb,nb), pold2(nb,nb),pold(nb,nb), mprod,invseigs(nb,nb)
 real(dp) :: fold(nb,nb,ndiis),fdiis(nb,nb), hcore(nb,nb), sminhalf(nb,nb), pinit(nb,nb), tmat(nb,nb)
-real(dp) :: resmax,resid(nb,nb),resido(nb,nb,ndiis), bmat(ndiis+1,ndiis+1),vecb(ndiis+1),solb(ndiis+1),vec(ndiis+1)
-real(dp) :: eigs(nb), eeold, deltae, deltap, fac, fac1, fac2, trace
+real(dp) :: resmax,resid(nb,nb),resido(nb,nb,ndiis), bmat(ndiis+1,ndiis+1),vecb(ndiis+1),solb(ndiis+1)
+real(dp) :: eigs(nb), eeold, deltae, deltap
 real(dp), parameter :: conv=1.d-5, conve=1.d-8
-integer(i4b) :: i, j,k,jk,iocc,a,b,c,d,ii, mu, nu, ndiisuse
+integer(i4b) :: i, j, k, jk, mu, nu
 logical(lgt) :: diis
 
 ! Then obtain the matrix S^-1/2 that orthogonalizes the basis
@@ -28,11 +28,6 @@ if (densup) then
      k=k+nbfsat(i)
   end do
   write (9,*) "Built a guess density matrix by superimposing atom densities."
-  trace=0._dp
-  do i=1,nb
-     trace=trace+p(i,i)
-  end do
-  write (9,*) "Trace of d mat:",trace
   call wrapper_dsyev(nb,p,eigs,cmat)
   cmat=matmul(sminhalf,cmat)
   write (9,*) "eigenvalues of density-based density matrix:"
@@ -96,7 +91,7 @@ do i=1,maxiter
   end if
   if (diis) then
 !    build b matrix
-     b=0._dp
+     bmat=0._dp
      bmat(ndiis+1,:)=-1._dp; bmat(:,ndiis+1)=-1._dp; bmat(ndiis+1,ndiis+1)=0._dp
      vecb=0._dp ; vecb(ndiis+1)=-1._dp
      do j=1,ndiis

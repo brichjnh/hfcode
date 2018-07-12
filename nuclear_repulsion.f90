@@ -3,7 +3,7 @@ use nrtype; use molprops
 implicit none
 
 integer(i4b) :: i, j
-real(dp) :: rnm(3), r, totchg
+real(dp) :: rnm(3), r
 
 unuc=0._dp
 do i=1, natom

@@ -5,7 +5,6 @@ implicit none
 ! This subroutine is the driver routine for calculating all the 1-electron integrals
 ! It calls a variety of routines that calculate S, T or V matrix elements
 
-real(dp) :: ga, gb, gg, zc
 real(dp) :: sss,tss,vss, ssp(3),tsp(3),vsp(3)
 !real(dp) :: tmpmat(7,7)
 real(dp) :: ssl(4),tsl(4),vsl(4)
@@ -16,8 +15,8 @@ real(dp) :: ssd(5),tsd(5),vsd(5)
 real(dp) :: spd(3,5),tpd(3,5),vpd(3,5)
 real(dp) :: sdd(5,5),tdd(5,5),vdd(5,5)
 real(dp) :: sdl(5,4),tdl(5,4),vdl(5,4)
-integer(i4b) :: sh1, sh2, prim1, prim2, nuc, ao1, ao2
-integer(i4b) :: i, ii,jj,ab,oo(13),j
+integer(i4b) :: sh1, sh2, ao1, ao2
+integer(i4b) :: i, ii,jj,ab
 
 ! For convenience, we will store the 1-electron overlap, kinetic and nuclear
 !   Coulomb matrices in their full nbasis * nbasis form

@@ -3,7 +3,7 @@ use nrtype; use molprops ; use s_sp_l_terms ; use s_d_l_terms ; use s_p_d_terms
 implicit none
 
 integer(i4b) :: ab1, ab2, sh1,sh2,sh3,sh4, ao1, ao2,ao3,ao4, nschw,atc,atd, n1, n2, n3, n4
-integer(i4b) :: ii, jj, i, j, k, l, ij, kl, ijkl, ia,ja,ka,la, ierr
+integer(i4b) :: ii, jj, i, j, k, l, ij, kl, ijkl, ja, ka, la, ierr
 real(dp) :: essss, esssp(3), esspp(3,3), espsp(3,3), esppp(3,3,3), epppp(3,3,3,3)
 real(dp) :: esssd(5), essdd(5,5), esdsd(5,5), esddd(5,5,5), edddd(5,5,5,5)
 real(dp) :: esspd(3,5), espsd(3,5), esppd(3,3,5), esdpp(5,3,3)

@@ -52,7 +52,7 @@ integer(i4b), intent(in) :: sh1,sh2,sh3,sh4
 real(dp), intent(out) :: esssp(3)
 
 integer(i4b) :: ab, cd, za, zb, zc, zd, zza, zzc, zzab, zzcd
-real(dp) :: ooppq, qpq, poppq, qoppq, rpq2, fac1
+real(dp) :: ooppq, qpq, qoppq, rpq2
 real(dp) :: bfac(0:1), os(0:1), rdq(3), rqw(3), wx(3)
 
 esssp=0._dp
@@ -181,7 +181,7 @@ integer(i4b), intent(in) :: sh1,sh2,sh3,sh4
 real(dp), intent(out) :: espsp(3,3)
 
 integer(i4b) :: ab, cd, za, zb, zc, zd, zza, zzc, zzab, zzcd, m, j
-real(dp) :: ooppq, qpq, poppq, qoppq, rpq2, fac1
+real(dp) :: ooppq, qpq, qoppq, rpq2, fac1
 real(dp) :: bfac(0:2), os(0:3,0:3,0:2), rbp(3), rpw(3), rdq(3), rqw(3), wx(3)
 
 ! Simply assemble the [sx|sy] (x,y=s,p) integrals and contract them
@@ -243,11 +243,11 @@ implicit none
 integer(i4b), intent(in) :: sh1,sh2,sh3,sh4
 real(dp), intent(out) :: esppp(3,3,3)
 
-integer(i4b) :: ab, cd, za, zb, zc, zd, zza, zzc, zzab, zzcd, m, k, l, lm1, lp1, jj, jp1, j
+integer(i4b) :: ab, cd, za, zb, zc, zd, zza, zzc, zzab, zzcd, m, l, lm1, lp1, jj
 integer(i4b) :: kp1, jrec
-real(dp) :: ooppq, qpq, qop, poppq, qoppq, rpq2, fac1
+real(dp) :: ooppq, qpq, poppq, qoppq, rpq2
 real(dp) :: bfac(0:3), os(4,10,0:3), osc(4,10), rpw(3), rbp(3), rdq(3), rqw(3), rcd(3)
-real(dp) :: wx(3), afac(0:1), delv(3)
+real(dp) :: wx(3), afac(0:1)
 
 ! First assemble the [sx|sy] (x=s,p; y=s,p,d) integrals and contract them
 ! We use the matrix os(j,l1,l2,m) depending on the one angular momentum at b, the two at d, and the Boys order
@@ -351,10 +351,10 @@ integer(i4b), intent(in) :: sh1,sh2,sh3,sh4
 real(dp), intent(out) :: epppp(3,3,3,3)
 
 integer(i4b) :: ab, cd, za, zb, zc, zd, zza, zzc, zzab, zzcd
-integer(i4b) :: m, i, ip1, im1, j, jp1, jm1, k, kp1, km1, l, lp1, lm1, ijk
-real(dp) :: ooppq, qpq, poq, qoppq, rpq2, fac1, afac(0:2)
+integer(i4b) :: m, i, ip1, im1, k, kp1, km1, l, lp1, ijk
+real(dp) :: ooppq, qpq, poq, qoppq, rpq2, afac(0:2)
 real(dp) :: bfac(0:4), os(35,0:4), oset(35,10), osc(10,10), rpw(3), rap(3)
-real(dp) :: rba(3), rdc(3), delv(3), ketmat(10,3,3), wx(3), pzpx,pzpy,pzpz
+real(dp) :: rba(3), rdc(3), delv(3), ketmat(10,3,3), wx(3)
 
 osc=0._dp
 ab=ind2(sh1,sh2)
@@ -511,7 +511,7 @@ integer(i4b), intent(in) :: sh1,sh2,sh3,sh4
 real(dp), intent(out) :: esspl(3,4)
 
 integer(i4b) :: ab, cd, za, zb, zc, zd, zza, zzc, zzab, zzcd, m
-integer(i4b) :: k, l, km1, lm1, jj
+integer(i4b) :: k, jj
 real(dp) :: ooppq,poppq, rpq2, fac, qpq
 real(dp) :: bfac(0:2), os(4,4,0:2), osc(4,4), rcq(3), rdq(3), rqw(3), wx(3)
 
@@ -573,9 +573,9 @@ implicit none
 integer(i4b), intent(in) :: sh1,sh2,sh3,sh4
 real(dp), intent(out) :: espsl(3,4)
 
-integer(i4b) :: ab, cd, za, zb, zc, zd, zza, zzc, zzab, zzcd, m
-integer(i4b) :: j, jm1, l, jj
-real(dp) :: ooppq, qpq, poppq, qoppq, rpq2, fac1, wx(3)
+integer(i4b) :: ab, cd, za, zb, zc, zd, zzab, zzcd, m
+integer(i4b) :: j
+real(dp) :: ooppq, qpq, qoppq, rpq2, fac1, wx(3)
 real(dp) :: bfac(0:2), os(4,4,0:2), rbp(3), rpw(3), rdq(3), rqw(3)
 
 ! Simply assemble the [sx|sy] (x,y=s,p) integrals and contract them
@@ -1052,7 +1052,7 @@ integer(i4b), intent(in) :: sh1,sh2,sh3,sh4
 real(dp), intent(out) :: epppl(3,3,3,4)
 
 integer(i4b) :: ab, cd, za, zb, zc, zd, zza, zzc, zzab, zzcd, m, jj, k
-real(dp) :: ooppq, qpq, ooq, oop, poppq, qoppq, rpq2, fac1(3)
+real(dp) :: ooppq, qpq, poppq, qoppq, rpq2, fac1(3)
 real(dp) :: bfac(0:4), os(4,4,4,4,0:4), rap(3), rpw(3), rbp(3), rcq(3), rdq(3), rqw(3)
 real(dp) :: wx(3)
 
@@ -1158,7 +1158,7 @@ integer(i4b), intent(in) :: sh1,sh2,sh3,sh4
 real(dp), intent(out) :: eppll(3,3,4,4)
 
 integer(i4b) :: ab, cd, za, zb, zc, zd, zza, zzc, zzab, zzcd, m, jj, k
-real(dp) :: ooppq, qpq, ooq, oop, poppq, qoppq, rpq2, fac1(3)
+real(dp) :: ooppq, qpq, poppq, qoppq, rpq2, fac1(3)
 real(dp) :: bfac(0:4), os(4,4,4,4,0:4), rap(3), rpw(3), rbp(3), rcq(3), rdq(3), rqw(3)
 real(dp) :: ggkl, wx(3)
 

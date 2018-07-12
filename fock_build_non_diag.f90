@@ -1,4 +1,4 @@
-subroutine fock_build_non_diag(f,p,thr,nprsscr)
+subroutine fock_build_non_diag(f,p,thr)
 use nrtype; use molprops ; use omp_lib ; use s_sp_l_terms ; use s_d_l_terms ; use s_p_d_terms
 implicit none
 
@@ -8,14 +8,13 @@ implicit none
 
 real(dp), intent(in) :: p(nb,nb), thr
 real(dp), intent(inout) :: f(nb,nb)
-integer(i4b), intent(out) :: nprsscr
 
 integer(i4b) :: thrn, nthr
-integer(i4b) :: i, j,ij,k,l,ii,jj, ia, ja, ka, la, ab1, ab2, sh1, sh2, sh3, sh4
+integer(i4b) :: i, j, k,l,ii,jj, ia, ja, ka, la, ab1, ab2, sh1, sh2, sh3, sh4
 integer(i4b), save :: first_iter
-logical(lgt) :: sameabab, allsame, sameij, samejk, samekl, bla
+logical(lgt) :: sameij, samejk, samekl
 real(dp) :: essss, esssp(3), esspp(3,3), espsp(3,3), esppp(3,3,3), epppp(3,3,3,3)
-real(dp) :: esssd(5), essdd(5,5), esdsd(5,5), esddd(5,5,5), edddd(5,5,5,5), t1, t2
+real(dp) :: esssd(5), essdd(5,5), esdsd(5,5), esddd(5,5,5), edddd(5,5,5,5)
 real(dp) :: esspd(3,5),espsd(3,5),esppd(3,3,5),espdd(3,5,5),esdpp(5,3,3),esdpd(5,3,5),epppd(3,3,3,5)
 real(dp) :: esssl(4), esspl(3,4), essll(4,4), espsl(3,4), esppl(3,3,4), espll(3,4,4)
 real(dp) :: eslsl(4,4), eslpp(4,3,3), eslpl(4,3,4), eslll(4,4,4), epppl(3,3,3,4)
@@ -26,8 +25,8 @@ real(dp) :: maxdm(nab), fac, maxdmcoul, maxdmexch, maxdmval
 real(dp) :: floc(nb,nb)
 
 call evaluate_maxdm(p,maxdm)
-
-nprsscr=0
+!write (9,*) "started non diag"
+!flush(9)
 
 ! Start with (ss|ss)
 
@@ -35,20 +34,22 @@ nprsscr=0
 !$OMP      sdprs,slprs,ppprs,pdprs,plprs,ddprs,dlprs,llprs, &
 !$OMP      schwss,schwsp,schwsd,schwsl,schwpp,schwpd,schwpl,schwdd,schwdl,schwll, &
 !$OMP      orderss,ordersp,ordersd,ordersl,orderpp,orderpd,orderpl,orderdd,orderdl,orderll, &
-!$OMP      ind2,thr,nss,nsp,nsd,nsl,npp,npd,npl,ndd,ndl,nll,aosh,atsh)
+!$OMP      ind2,thr,nss,nsp,nsd,nsl,npp,npd,npl,ndd,ndl,nll,aosh,atsh, &
+!$OMP      lastss,lastsp,lastsd,lastsl,lastpp,lastpd,lastpl,lastdd,lastdl,lastll)
 nthr = OMP_GET_NUM_THREADS()
 thrn = OMP_GET_THREAD_NUM()
 if (first_iter.ne.20) then
   !$OMP MASTER
   write (*,*) "Using this number of threads:",nthr
   write (9,*) "Using this number of threads:",nthr
+  flush(9)
   !$OMP END MASTER
   first_iter=20
 end if
 floc=0._dp
 call time_diff_omp(0," ")
 !$OMP DO SCHEDULE(DYNAMIC)
-do ii=2,nss
+do ii=2,lastss
   sh1=ssprs(1,orderss(ii))
   sh2=ssprs(2,orderss(ii))
   ia=aosh(sh1) ; ja=aosh(sh2)
@@ -63,10 +64,7 @@ do ii=2,nss
     maxdmexch=max(maxdm(ind2(sh1,sh3)),maxdm(ind2(sh1,sh4)),maxdm(ind2(sh2,sh3)),&
        & maxdm(ind2(sh2,sh4)))
     maxdmval=max(maxdmcoul,.25_dp*maxdmexch)
-    if (schwss(orderss(ii))*schwss(orderss(jj))*maxdmval.lt.thr) then
-        nprsscr=nprsscr+1
-        cycle
-    end if
+    if (schwss(orderss(ii))*schwss(orderss(jj))*maxdmval.lt.thr) cycle
     call i2e_ssss(sh1,sh2,sh3,sh4,essss)
     if (abs(essss).lt.thr) cycle
     if (sameij.and.samekl) then   ! (aa|bb) - note (Aa|aa) is impossible because this is off-diagonal
@@ -126,13 +124,13 @@ if (prtlevl.ge.4) call time_diff_omp(1,"(ss|ss) integ:")
 
 !$OMP DO SCHEDULE(DYNAMIC)
 ! (ss|sp)
-do ii=1,nss
+do ii=1,lastss
   sh1=ssprs(1,orderss(ii))
   sh2=ssprs(2,orderss(ii))
   ab1=ind2(sh1,sh2)
   ia=aosh(sh1) ; ja=aosh(sh2)
   sameij=(ia.eq.ja)
-  do jj=1,nsp
+  do jj=1,lastsp
     sh3=spprs(1,ordersp(jj))
     sh4=spprs(2,ordersp(jj))
     ab2=ind2(sh3,sh4)
@@ -141,10 +139,7 @@ do ii=1,nss
     maxdmexch=max(maxdm(ind2(sh1,sh3)),maxdm(ind2(sh1,sh4)),maxdm(ind2(sh2,sh3)),&
        & maxdm(ind2(sh2,sh4)))
     maxdmval=max(maxdmcoul,.25_dp*maxdmexch)
-    if (schwss(orderss(ii))*schwsp(ordersp(jj))*maxdmval.lt.thr) then
-        nprsscr=nprsscr+1
-        cycle
-    end if
+    if (schwss(orderss(ii))*schwsp(ordersp(jj))*maxdmval.lt.thr) cycle
     call i2e_sssp(sh1,sh2,sh3,sh4,esssp)
     if (maxval(abs(esssp)).lt.thr) cycle
     if (sameij) then   ! (aa|bc) or (aa|ab)
@@ -192,13 +187,13 @@ if (prtlevl.ge.4) call time_diff_omp(1,"(ss|sp) integ:")
 !$OMP END MASTER
 
 !$OMP DO SCHEDULE(DYNAMIC)
-do ii=1,nss ! (ss|sd)
+do ii=1,lastss ! (ss|sd)
   sh1=ssprs(1,orderss(ii))
   sh2=ssprs(2,orderss(ii))
   ab1=ind2(sh1,sh2)
   ia=aosh(sh1) ; ja=aosh(sh2)
   sameij=(ia.eq.ja)
-  do jj=1,nsd
+  do jj=1,lastsd
     sh3=sdprs(1,ordersd(jj))
     sh4=sdprs(2,ordersd(jj))
     ab2=ind2(sh3,sh4)
@@ -206,10 +201,7 @@ do ii=1,nss ! (ss|sd)
     maxdmexch=max(maxdm(ind2(sh1,sh3)),maxdm(ind2(sh1,sh4)),maxdm(ind2(sh2,sh3)),&
        & maxdm(ind2(sh2,sh4)))
     maxdmval=max(maxdmcoul,.25_dp*maxdmexch)
-    if (schwss(orderss(ii))*schwsd(ordersd(jj))*maxdmval.lt.thr) then
-        nprsscr=nprsscr+1
-        cycle
-    end if
+    if (schwss(orderss(ii))*schwsd(ordersd(jj))*maxdmval.lt.thr) cycle
     ka=aosh(sh3) ; la=aosh(sh4)
     call i2e_sssd(sh1,sh2,sh3,sh4,esssd)
     if (maxval(abs(esssd)).lt.thr) cycle
@@ -261,13 +253,13 @@ if (prtlevl.ge.4) call time_diff_omp(1,"(ss|sd) integ:")
 
 ! (ss|sl)
 
-do ii=1,nss
+do ii=1,lastss
   sh1=ssprs(1,orderss(ii))
   sh2=ssprs(2,orderss(ii))
   ab1=ind2(sh1,sh2)
   ia=aosh(sh1) ; ja=aosh(sh2)
   sameij=(ia.eq.ja)
-  do jj=1,nsl
+  do jj=1,lastsl
     sh3=slprs(1,ordersl(jj))
     sh4=slprs(2,ordersl(jj))
     ab2=ind2(sh3,sh4)
@@ -276,10 +268,7 @@ do ii=1,nss
     maxdmexch=max(maxdm(ind2(sh1,sh3)),maxdm(ind2(sh1,sh4)),maxdm(ind2(sh2,sh3)),&
        & maxdm(ind2(sh2,sh4)))
     maxdmval=max(maxdmcoul,.25_dp*maxdmexch)
-    if (schwss(orderss(ii))*schwsl(ordersl(jj))*maxdmval.lt.thr) then
-        nprsscr=nprsscr+1
-        cycle
-    end if
+    if (schwss(orderss(ii))*schwsl(ordersl(jj))*maxdmval.lt.thr) cycle
     call i2e_sssl(sh1,sh2,sh3,sh4,esssl)
     if (maxval(abs(esssl)).lt.thr) cycle
     if (sameij) then   ! (aa|bc) or (aa|ab)
@@ -328,13 +317,13 @@ if (prtlevl.ge.4) call time_diff_omp(1,"(ss|sl) integ:")
 
 !$OMP DO SCHEDULE(DYNAMIC)
 
-do ii=1,nss  ! (ss|pp)
+do ii=1,lastss  ! (ss|pp)
   sh1=ssprs(1,orderss(ii))
   sh2=ssprs(2,orderss(ii))
   ab1=ind2(sh1,sh2)
   ia=aosh(sh1) ; ja=aosh(sh2)
   sameij=(ia.eq.ja)
-  do jj=1,npp
+  do jj=1,lastpp
     sh3=ppprs(1,orderpp(jj))
     sh4=ppprs(2,orderpp(jj))
     ab2=ind2(sh3,sh4)
@@ -343,10 +332,7 @@ do ii=1,nss  ! (ss|pp)
     maxdmexch=max(maxdm(ind2(sh1,sh3)),maxdm(ind2(sh1,sh4)),maxdm(ind2(sh2,sh3)),&
        & maxdm(ind2(sh2,sh4)))
     maxdmval=max(maxdmcoul,.25_dp*maxdmexch)
-    if (schwss(orderss(ii))*schwpp(orderpp(jj))*maxdmval.lt.thr) then
-        nprsscr=nprsscr+1
-        cycle
-    end if
+    if (schwss(orderss(ii))*schwpp(orderpp(jj))*maxdmval.lt.thr) cycle
     call i2e_sspp(sh1,sh2,sh3,sh4,esspp)
     if (maxval(abs(esspp)).lt.thr) cycle
     samekl=(sh3.eq.sh4)
@@ -428,13 +414,13 @@ if (prtlevl.ge.4) call time_diff_omp(1,"(ss|pp) integ:")
 
 !$OMP DO SCHEDULE(DYNAMIC)
  
-do ii=1,nss    ! (ss|pd)
+do ii=1,lastss    ! (ss|pd)
   sh1=ssprs(1,orderss(ii))
   sh2=ssprs(2,orderss(ii))
   ab1=ind2(sh1,sh2)
   ia=aosh(sh1) ; ja=aosh(sh2)
   sameij=(ia.eq.ja)
-  do jj=1,npd
+  do jj=1,lastpd
     sh3=pdprs(1,orderpd(jj))
     sh4=pdprs(2,orderpd(jj))
     ab2=ind2(sh3,sh4)
@@ -442,10 +428,7 @@ do ii=1,nss    ! (ss|pd)
     maxdmexch=max(maxdm(ind2(sh1,sh3)),maxdm(ind2(sh1,sh4)),maxdm(ind2(sh2,sh3)),&
        & maxdm(ind2(sh2,sh4)))
     maxdmval=max(maxdmcoul,.25_dp*maxdmexch)
-    if (schwss(orderss(ii))*schwpd(orderpd(jj))*maxdmval.lt.thr) then
-        nprsscr=nprsscr+1
-        cycle
-    end if
+    if (schwss(orderss(ii))*schwpd(orderpd(jj))*maxdmval.lt.thr) cycle
     ka=aosh(sh3) ; la=aosh(sh4)
     call i2e_sspd(sh1,sh2,sh3,sh4,esspd)
     if (maxval(abs(esspd)).lt.thr) cycle
@@ -501,13 +484,13 @@ if (prtlevl.ge.4) call time_diff_omp(1,"(ss|pd) integ:")
 
 !$OMP DO SCHEDULE(DYNAMIC)
 
-do ii=1,nss    ! (ss|pl)
+do ii=1,lastss    ! (ss|pl)
   sh1=ssprs(1,orderss(ii))
   sh2=ssprs(2,orderss(ii))
   ab1=ind2(sh1,sh2)
   ia=aosh(sh1) ; ja=aosh(sh2)
   sameij=(ia.eq.ja)
-  do jj=1,npl
+  do jj=1,lastpl
     sh3=plprs(1,orderpl(jj))
     sh4=plprs(2,orderpl(jj))
     ab2=ind2(sh3,sh4)
@@ -516,10 +499,7 @@ do ii=1,nss    ! (ss|pl)
     maxdmexch=max(maxdm(ind2(sh1,sh3)),maxdm(ind2(sh1,sh4)),maxdm(ind2(sh2,sh3)),&
        & maxdm(ind2(sh2,sh4)))
     maxdmval=max(maxdmcoul,.25_dp*maxdmexch)
-    if (schwss(orderss(ii))*schwpl(orderpl(jj))*maxdmval.lt.thr) then
-        nprsscr=nprsscr+1
-        cycle
-    end if
+    if (schwss(orderss(ii))*schwpl(orderpl(jj))*maxdmval.lt.thr) cycle
     call i2e_sspl(sh1,sh2,sh3,sh4,esspl)
     if (maxval(abs(esspl)).lt.thr) cycle
     if (sameij) then   ! (aa|bc) or (aa|ab)
@@ -574,13 +554,13 @@ if (prtlevl.ge.4) call time_diff_omp(1,"(ss|pl) integ:")
 
 !$OMP DO SCHEDULE(DYNAMIC)
 
-do ii=1,nss  ! (ss|dd)
+do ii=1,lastss  ! (ss|dd)
   sh1=ssprs(1,orderss(ii))
   sh2=ssprs(2,orderss(ii))
   ab1=ind2(sh1,sh2)
   ia=aosh(sh1) ; ja=aosh(sh2)
   sameij=(ia.eq.ja)
-  do jj=1,ndd
+  do jj=1,lastdd
     sh3=ddprs(1,orderdd(jj))
     sh4=ddprs(2,orderdd(jj))
     ab2=ind2(sh3,sh4)
@@ -588,10 +568,7 @@ do ii=1,nss  ! (ss|dd)
     maxdmexch=max(maxdm(ind2(sh1,sh3)),maxdm(ind2(sh1,sh4)),maxdm(ind2(sh2,sh3)),&
        & maxdm(ind2(sh2,sh4)))
     maxdmval=max(maxdmcoul,.25_dp*maxdmexch)
-    if (schwss(orderss(ii))*schwdd(orderdd(jj))*maxdmval.lt.thr) then
-        nprsscr=nprsscr+1
-        cycle
-    end if
+    if (schwss(orderss(ii))*schwdd(orderdd(jj))*maxdmval.lt.thr) cycle
     ka=aosh(sh3) ; la=aosh(sh4)
     call i2e_ssdd(sh1,sh2,sh3,sh4,essdd)
     if (maxval(abs(essdd)).lt.thr) cycle
@@ -675,13 +652,13 @@ if (prtlevl.ge.4) call time_diff_omp(1,"(ss|dd) integ:")
 
 !$OMP DO SCHEDULE(DYNAMIC)
 
-do ii=1,nss    ! (ss|dl)
+do ii=1,lastss    ! (ss|dl)
   sh1=ssprs(1,orderss(ii))
   sh2=ssprs(2,orderss(ii))
   ab1=ind2(sh1,sh2)
   ia=aosh(sh1) ; ja=aosh(sh2)
   sameij=(ia.eq.ja)
-  do jj=1,ndl
+  do jj=1,lastdl
     sh3=dlprs(1,orderdl(jj))
     sh4=dlprs(2,orderdl(jj))
     ab2=ind2(sh3,sh4)
@@ -690,10 +667,7 @@ do ii=1,nss    ! (ss|dl)
     maxdmexch=max(maxdm(ind2(sh1,sh3)),maxdm(ind2(sh1,sh4)),maxdm(ind2(sh2,sh3)),&
        & maxdm(ind2(sh2,sh4)))
     maxdmval=max(maxdmcoul,.25_dp*maxdmexch)
-    if (schwss(orderss(ii))*schwdl(orderdl(jj))*maxdmval.lt.thr) then
-        nprsscr=nprsscr+1
-        cycle
-    end if
+    if (schwss(orderss(ii))*schwdl(orderdl(jj))*maxdmval.lt.thr) cycle
     call i2e_ssdl(sh1,sh2,sh3,sh4,essdl)
     if (maxval(abs(essdl)).lt.thr) cycle
     if (sameij) then   ! (aa|bc) or (aa|ab)
@@ -749,13 +723,13 @@ if (prtlevl.ge.4) call time_diff_omp(1,"(ss|dl) integ:")
 
 !$OMP DO SCHEDULE(DYNAMIC)
 
-do ii=1,nss  ! (ss|ll)
+do ii=1,lastss  ! (ss|ll)
   sh1=ssprs(1,orderss(ii))
   sh2=ssprs(2,orderss(ii))
   ab1=ind2(sh1,sh2)
   ia=aosh(sh1) ; ja=aosh(sh2)
   sameij=(ia.eq.ja)
-  do jj=1,nll
+  do jj=1,lastll
     sh3=llprs(1,orderll(jj))
     sh4=llprs(2,orderll(jj))
     ab2=ind2(sh3,sh4)
@@ -764,10 +738,7 @@ do ii=1,nss  ! (ss|ll)
     maxdmexch=max(maxdm(ind2(sh1,sh3)),maxdm(ind2(sh1,sh4)),maxdm(ind2(sh2,sh3)),&
        & maxdm(ind2(sh2,sh4)))
     maxdmval=max(maxdmcoul,.25_dp*maxdmexch)
-    if (schwss(orderss(ii))*schwll(orderll(jj))*maxdmval.lt.thr) then
-        nprsscr=nprsscr+1
-        cycle
-    end if
+    if (schwss(orderss(ii))*schwll(orderll(jj))*maxdmval.lt.thr) cycle
     call i2e_ssll(sh1,sh2,sh3,sh4,essll)
     if (maxval(abs(essll)).lt.thr) cycle
     samekl=(sh3.eq.sh4)
@@ -849,7 +820,7 @@ if (prtlevl.ge.4) call time_diff_omp(1,"(ss|ll) integ:")
 !$OMP END MASTER
 
 !$OMP DO SCHEDULE(DYNAMIC)
-do ii=2,nsp  !  (sp|sp)
+do ii=2,lastsp  !  (sp|sp)
   sh1=spprs(1,ordersp(ii))
   sh2=spprs(2,ordersp(ii))
   ab1=ind2(sh1,sh2)
@@ -863,10 +834,7 @@ do ii=2,nsp  !  (sp|sp)
     maxdmexch=max(maxdm(ind2(sh1,sh3)),maxdm(ind2(sh1,sh4)),maxdm(ind2(sh2,sh3)),&
        & maxdm(ind2(sh2,sh4)))
     maxdmval=max(maxdmcoul,.25_dp*maxdmexch)
-    if (schwsp(ordersp(ii))*schwsp(ordersp(jj))*maxdmval.lt.thr) then
-        nprsscr=nprsscr+1
-        cycle
-    end if
+    if (schwsp(ordersp(ii))*schwsp(ordersp(jj))*maxdmval.lt.thr) cycle
     call i2e_spsp(sh1,sh2,sh3,sh4,espsp)
     if (maxval(abs(espsp)).lt.thr) cycle
     ! Since the bra and ket shell pairs cannot both be the same, at most we can have
@@ -904,12 +872,12 @@ if (prtlevl.ge.4) call time_diff_omp(1,"(sp|sp) integ:")
 
 !$OMP DO SCHEDULE(DYNAMIC)
 
-do ii=1,nsp  !  (sp|sd)
+do ii=1,lastsp  !  (sp|sd)
   sh1=spprs(1,ordersp(ii))
   sh2=spprs(2,ordersp(ii))
   ab1=ind2(sh1,sh2)
   ia=aosh(sh1)
-  do jj=1,nsd
+  do jj=1,lastsd
     sh3=sdprs(1,ordersd(jj))
     sh4=sdprs(2,ordersd(jj))
     ab2=ind2(sh3,sh4)
@@ -917,10 +885,7 @@ do ii=1,nsp  !  (sp|sd)
     maxdmexch=max(maxdm(ind2(sh1,sh3)),maxdm(ind2(sh1,sh4)),maxdm(ind2(sh2,sh3)),&
        & maxdm(ind2(sh2,sh4)))
     maxdmval=max(maxdmcoul,.25_dp*maxdmexch)
-    if (schwsp(ordersp(ii))*schwsd(ordersd(jj))*maxdmval.lt.thr) then
-        nprsscr=nprsscr+1
-        cycle
-    end if
+    if (schwsp(ordersp(ii))*schwsd(ordersd(jj))*maxdmval.lt.thr) cycle
     ka=aosh(sh3)
     call i2e_spsd(sh1,sh2,sh3,sh4,espsd)
     if (maxval(abs(espsd)).lt.thr) cycle
@@ -958,12 +923,12 @@ if (prtlevl.ge.4) call time_diff_omp(1,"(sp|sd) integ:")
 
 !$OMP DO SCHEDULE(DYNAMIC)
 
-do ii=1,nsp  !  (sp|sl)
+do ii=1,lastsp  !  (sp|sl)
   sh1=spprs(1,ordersp(ii))
   sh2=spprs(2,ordersp(ii))
   ab1=ind2(sh1,sh2)
   ia=aosh(sh1)
-  do jj=1,nsl
+  do jj=1,lastsl
     sh3=slprs(1,ordersl(jj))
     sh4=slprs(2,ordersl(jj))
     ab2=ind2(sh3,sh4)
@@ -971,10 +936,7 @@ do ii=1,nsp  !  (sp|sl)
     maxdmexch=max(maxdm(ind2(sh1,sh3)),maxdm(ind2(sh1,sh4)),maxdm(ind2(sh2,sh3)),&
        & maxdm(ind2(sh2,sh4)))
     maxdmval=max(maxdmcoul,.25_dp*maxdmexch)
-    if (schwsp(ordersp(ii))*schwsl(ordersl(jj))*maxdmval.lt.thr) then
-        nprsscr=nprsscr+1
-        cycle
-    end if
+    if (schwsp(ordersp(ii))*schwsl(ordersl(jj))*maxdmval.lt.thr) cycle
     ka=aosh(sh3)
     call i2e_spsl(sh1,sh2,sh3,sh4,espsl)
     if (maxval(abs(espsl)).lt.thr) cycle
@@ -1012,12 +974,12 @@ if (prtlevl.ge.4) call time_diff_omp(1,"(sp|sl) integ:")
 
 
 !$OMP DO SCHEDULE(DYNAMIC)
-do ii=1,nsp  ! (sp|pp)
+do ii=1,lastsp  ! (sp|pp)
   sh1=spprs(1,ordersp(ii))
   sh2=spprs(2,ordersp(ii))
   ab1=ind2(sh1,sh2)
   ia=aosh(sh1)
-  do jj=1,npp
+  do jj=1,lastpp
     sh3=ppprs(1,orderpp(jj))
     sh4=ppprs(2,orderpp(jj))
     ab2=ind2(sh3,sh4)
@@ -1025,10 +987,7 @@ do ii=1,nsp  ! (sp|pp)
     maxdmexch=max(maxdm(ind2(sh1,sh3)),maxdm(ind2(sh1,sh4)),maxdm(ind2(sh2,sh3)),&
        & maxdm(ind2(sh2,sh4)))
     maxdmval=max(maxdmcoul,.25_dp*maxdmexch)
-    if (schwsp(ordersp(ii))*schwpp(orderpp(jj))*maxdmval.lt.thr) then
-       nprsscr=nprsscr+1
-       cycle
-    end if
+    if (schwsp(ordersp(ii))*schwpp(orderpp(jj))*maxdmval.lt.thr) cycle
     call i2e_sppp(sh1,sh2,sh3,sh4,esppp)
     if (maxval(abs(esppp)).lt.thr) cycle
     ! The only special case here is if shells sh3 and sh4 are the same.
@@ -1085,12 +1044,12 @@ if (prtlevl.ge.4) call time_diff_omp(1,"(sp|pp) integ:")
 
 !$OMP DO SCHEDULE(DYNAMIC)
 
-do ii=1,nsp  !  (sp|pd)
+do ii=1,lastsp  !  (sp|pd)
   sh1=spprs(1,ordersp(ii))
   sh2=spprs(2,ordersp(ii))
   ab1=ind2(sh1,sh2)
   ia=aosh(sh1)
-  do jj=1,npd
+  do jj=1,lastpd
     sh3=pdprs(1,orderpd(jj))
     sh4=pdprs(2,orderpd(jj))
     ab2=ind2(sh3,sh4)
@@ -1098,10 +1057,7 @@ do ii=1,nsp  !  (sp|pd)
     maxdmexch=max(maxdm(ind2(sh1,sh3)),maxdm(ind2(sh1,sh4)),maxdm(ind2(sh2,sh3)),&
        & maxdm(ind2(sh2,sh4)))
     maxdmval=max(maxdmcoul,.25_dp*maxdmexch)
-    if (schwsp(ordersp(ii))*schwpd(orderpd(jj))*maxdmval.lt.thr) then
-        nprsscr=nprsscr+1
-        cycle
-    end if
+    if (schwsp(ordersp(ii))*schwpd(orderpd(jj))*maxdmval.lt.thr) cycle
     ka=aosh(sh3)
     call i2e_sppd(sh1,sh2,sh3,sh4,esppd)
     if (maxval(abs(esppd)).lt.thr) cycle
@@ -1143,12 +1099,12 @@ if (prtlevl.ge.4) call time_diff_omp(1,"(sp|pd) integ:")
 
 
 !$OMP DO SCHEDULE(DYNAMIC)
-do ii=1,nsp  !  (sp|pl)
+do ii=1,lastsp  !  (sp|pl)
   sh1=spprs(1,ordersp(ii))
   sh2=spprs(2,ordersp(ii))
   ab1=ind2(sh1,sh2)
   ia=aosh(sh1)
-  do jj=1,npl
+  do jj=1,lastpl
     sh3=plprs(1,orderpl(jj))
     sh4=plprs(2,orderpl(jj))
     ab2=ind2(sh3,sh4)
@@ -1157,10 +1113,7 @@ do ii=1,nsp  !  (sp|pl)
     maxdmexch=max(maxdm(ind2(sh1,sh3)),maxdm(ind2(sh1,sh4)),maxdm(ind2(sh2,sh3)),&
        & maxdm(ind2(sh2,sh4)))
     maxdmval=max(maxdmcoul,.25_dp*maxdmexch)
-    if (schwsp(ordersp(ii))*schwpl(orderpl(jj))*maxdmval.lt.thr) then
-        nprsscr=nprsscr+1
-        cycle
-    end if
+    if (schwsp(ordersp(ii))*schwpl(orderpl(jj))*maxdmval.lt.thr) cycle
     call i2e_sppl(sh1,sh2,sh3,sh4,esppl)
     if (maxval(abs(esppl)).lt.thr) cycle
     ! At most we can have (ab|ac) here, so no need to do anything special.
@@ -1201,12 +1154,12 @@ if (prtlevl.ge.4) call time_diff_omp(1,"(sd|dl) integ:")
 
 
 !$OMP DO SCHEDULE(DYNAMIC)
-do ii=1,nsp  ! (sp|dd)
+do ii=1,lastsp  ! (sp|dd)
   sh1=spprs(1,ordersp(ii))
   sh2=spprs(2,ordersp(ii))
   ab1=ind2(sh1,sh2)
   ia=aosh(sh1)
-  do jj=1,ndd
+  do jj=1,lastdd
     sh3=ddprs(1,orderdd(jj))
     sh4=ddprs(2,orderdd(jj))
     ab2=ind2(sh3,sh4)
@@ -1214,10 +1167,7 @@ do ii=1,nsp  ! (sp|dd)
     maxdmexch=max(maxdm(ind2(sh1,sh3)),maxdm(ind2(sh1,sh4)),maxdm(ind2(sh2,sh3)),&
        & maxdm(ind2(sh2,sh4)))
     maxdmval=max(maxdmcoul,.25_dp*maxdmexch)
-    if (schwsp(ordersp(ii))*schwdd(orderdd(jj))*maxdmval.lt.thr) then
-       nprsscr=nprsscr+1
-       cycle
-    end if
+    if (schwsp(ordersp(ii))*schwdd(orderdd(jj))*maxdmval.lt.thr) cycle
     call i2e_spdd(sh1,sh2,sh3,sh4,espdd)
     if (maxval(abs(espdd)).lt.thr) cycle
     ! The only special case here is if shells sh3 and sh4 are the same.
@@ -1276,12 +1226,12 @@ if (prtlevl.ge.4) call time_diff_omp(1,"(sp|dd) integ:")
 
 ! necessary routine for (sp|dl) not yet written so skip it for now
 
-do ii=1,nsp  ! (sp|ll)
+do ii=1,lastsp  ! (sp|ll)
   sh1=spprs(1,ordersp(ii))
   sh2=spprs(2,ordersp(ii))
   ab1=ind2(sh1,sh2)
   ia=aosh(sh1)
-  do jj=1,nll
+  do jj=1,lastll
     sh3=llprs(1,orderll(jj))
     sh4=llprs(2,orderll(jj))
     ab2=ind2(sh3,sh4)
@@ -1289,10 +1239,7 @@ do ii=1,nsp  ! (sp|ll)
     maxdmexch=max(maxdm(ind2(sh1,sh3)),maxdm(ind2(sh1,sh4)),maxdm(ind2(sh2,sh3)),&
        & maxdm(ind2(sh2,sh4)))
     maxdmval=max(maxdmcoul,.25_dp*maxdmexch)
-    if (schwsp(ordersp(ii))*schwll(orderll(jj))*maxdmval.lt.thr) then
-       nprsscr=nprsscr+1
-       cycle
-    end if
+    if (schwsp(ordersp(ii))*schwll(orderll(jj))*maxdmval.lt.thr) cycle
     call i2e_spll(sh1,sh2,sh3,sh4,espll)
     if (maxval(abs(espll)).lt.thr) cycle
     ! The only special case here is if shells sh3 and sh4 are the same.
@@ -1349,7 +1296,7 @@ if (prtlevl.ge.4) call time_diff_omp(1,"(sp|ll) integ:")
 
 
 !$OMP DO SCHEDULE(DYNAMIC)
-do ii=2,nsd  !  (sd|sd)
+do ii=2,lastsd  !  (sd|sd)
   sh1=sdprs(1,ordersd(ii))
   sh2=sdprs(2,ordersd(ii))
   ab1=ind2(sh1,sh2)
@@ -1363,10 +1310,7 @@ do ii=2,nsd  !  (sd|sd)
     maxdmexch=max(maxdm(ind2(sh1,sh3)),maxdm(ind2(sh1,sh4)),maxdm(ind2(sh2,sh3)),&
        & maxdm(ind2(sh2,sh4)))
     maxdmval=max(maxdmcoul,.25_dp*maxdmexch)
-    if (schwsd(ordersd(ii))*schwsd(ordersd(jj))*maxdmval.lt.thr) then
-        nprsscr=nprsscr+1
-        cycle
-    end if
+    if (schwsd(ordersd(ii))*schwsd(ordersd(jj))*maxdmval.lt.thr) cycle
     call i2e_sdsd(sh1,sh2,sh3,sh4,esdsd)
     if (maxval(abs(esdsd)).lt.thr) cycle
     ! Since the bra and ket shell pairs cannot both be the same, at most we can have
@@ -1404,12 +1348,12 @@ if (prtlevl.ge.4) call time_diff_omp(1,"(sd|sd) integ:")
 !$OMP END MASTER
 
 !$OMP DO SCHEDULE(DYNAMIC)
-do ii=1,nsd  !  (sd|sl)
+do ii=1,lastsd  !  (sd|sl)
   sh1=sdprs(1,ordersd(ii))
   sh2=sdprs(2,ordersd(ii))
   ab1=ind2(sh1,sh2)
   ia=aosh(sh1)
-  do jj=1,nsl
+  do jj=1,lastsl
     sh3=slprs(1,ordersl(jj))
     sh4=slprs(2,ordersl(jj))
     ab2=ind2(sh3,sh4)
@@ -1417,10 +1361,7 @@ do ii=1,nsd  !  (sd|sl)
     maxdmexch=max(maxdm(ind2(sh1,sh3)),maxdm(ind2(sh1,sh4)),maxdm(ind2(sh2,sh3)),&
        & maxdm(ind2(sh2,sh4)))
     maxdmval=max(maxdmcoul,.25_dp*maxdmexch)
-    if (schwsd(ordersd(ii))*schwsl(ordersl(jj))*maxdmval.lt.thr) then
-        nprsscr=nprsscr+1
-        cycle
-    end if
+    if (schwsd(ordersd(ii))*schwsl(ordersl(jj))*maxdmval.lt.thr) cycle
     ka=aosh(sh3)
     call i2e_sdsl(sh1,sh2,sh3,sh4,esdsl)
     if (maxval(abs(esdsl)).lt.thr) cycle
@@ -1458,12 +1399,12 @@ if (prtlevl.ge.4) call time_diff_omp(1,"(sd|sl) integ:")
 !$OMP END MASTER
 
 !$OMP DO SCHEDULE(DYNAMIC)
-do ii=1,nsd  ! (sd|pp)
+do ii=1,lastsd  ! (sd|pp)
   sh1=sdprs(1,ordersd(ii))
   sh2=sdprs(2,ordersd(ii))
   ab1=ind2(sh1,sh2)
   ia=aosh(sh1)
-  do jj=1,npp
+  do jj=1,lastpp
     sh3=ppprs(1,orderpp(jj))
     sh4=ppprs(2,orderpp(jj))
     ab2=ind2(sh3,sh4)
@@ -1471,10 +1412,7 @@ do ii=1,nsd  ! (sd|pp)
     maxdmexch=max(maxdm(ind2(sh1,sh3)),maxdm(ind2(sh1,sh4)),maxdm(ind2(sh2,sh3)),&
        & maxdm(ind2(sh2,sh4)))
     maxdmval=max(maxdmcoul,.25_dp*maxdmexch)
-    if (schwsd(ordersd(ii))*schwpp(orderpp(jj))*maxdmval.lt.thr) then
-       nprsscr=nprsscr+1
-       cycle
-    end if
+    if (schwsd(ordersd(ii))*schwpp(orderpp(jj))*maxdmval.lt.thr) cycle
     call i2e_sdpp(sh1,sh2,sh3,sh4,esdpp)
     if (maxval(abs(esdpp)).lt.thr) cycle
     ! The only special case here is if shells sh3 and sh4 are the same.
@@ -1530,12 +1468,12 @@ if (prtlevl.ge.4) call time_diff_omp(1,"(sd|pp) integ:")
 !$OMP END MASTER
 
 !$OMP DO SCHEDULE(DYNAMIC)
-do ii=1,nsd  !  (sd|pd)
+do ii=1,lastsd  !  (sd|pd)
   sh1=sdprs(1,ordersd(ii))
   sh2=sdprs(2,ordersd(ii))
   ab1=ind2(sh1,sh2)
   ia=aosh(sh1)
-  do jj=1,npd
+  do jj=1,lastpd
     sh3=pdprs(1,orderpd(jj))
     sh4=pdprs(2,orderpd(jj))
     ab2=ind2(sh3,sh4)
@@ -1544,10 +1482,7 @@ do ii=1,nsd  !  (sd|pd)
     maxdmexch=max(maxdm(ind2(sh1,sh3)),maxdm(ind2(sh1,sh4)),maxdm(ind2(sh2,sh3)),&
        & maxdm(ind2(sh2,sh4)))
     maxdmval=max(maxdmcoul,.25_dp*maxdmexch)
-    if (schwsd(ordersd(ii))*schwpd(orderpd(jj))*maxdmval.lt.thr) then
-        nprsscr=nprsscr+1
-        cycle
-    end if
+    if (schwsd(ordersd(ii))*schwpd(orderpd(jj))*maxdmval.lt.thr) cycle
     call i2e_sdpd(sh1,sh2,sh3,sh4,esdpd)
     if (maxval(abs(esdpd)).lt.thr) cycle
     ! At most we can have (ab|ac) here, so no need to do anything special.
@@ -1588,12 +1523,12 @@ if (prtlevl.ge.4) call time_diff_omp(1,"(sd|pd) integ:")
 ! Skipping (sd|pl) for now
 
 !$OMP DO SCHEDULE(DYNAMIC)
-do ii=1,nsd  ! (sd|dd)
+do ii=1,lastsd  ! (sd|dd)
   sh1=sdprs(1,ordersd(ii))
   sh2=sdprs(2,ordersd(ii))
   ab1=ind2(sh1,sh2)
   ia=aosh(sh1)
-  do jj=1,ndd
+  do jj=1,lastdd
     sh3=ddprs(1,orderdd(jj))
     sh4=ddprs(2,orderdd(jj))
     ab2=ind2(sh3,sh4)
@@ -1601,10 +1536,7 @@ do ii=1,nsd  ! (sd|dd)
     maxdmexch=max(maxdm(ind2(sh1,sh3)),maxdm(ind2(sh1,sh4)),maxdm(ind2(sh2,sh3)),&
        & maxdm(ind2(sh2,sh4)))
     maxdmval=max(maxdmcoul,.25_dp*maxdmexch)
-    if (schwsd(ordersd(ii))*schwdd(orderdd(jj))*maxdmval.lt.thr) then
-       nprsscr=nprsscr+1
-       cycle
-    end if
+    if (schwsd(ordersd(ii))*schwdd(orderdd(jj))*maxdmval.lt.thr) cycle
     call i2e_sddd(sh1,sh2,sh3,sh4,esddd)
     if (maxval(abs(esddd)).lt.thr) cycle
     ! The only special case here is if shells sh3 and sh4 are the same.
@@ -1659,12 +1591,12 @@ if (prtlevl.ge.4) call time_diff_omp(1,"(sd|dd) integ:")
 !$OMP END MASTER
 
 !$OMP DO SCHEDULE(DYNAMIC)
-do ii=1,nsd  !  (sd|dl)
+do ii=1,lastsd  !  (sd|dl)
   sh1=sdprs(1,ordersd(ii))
   sh2=sdprs(2,ordersd(ii))
   ab1=ind2(sh1,sh2)
   ia=aosh(sh1)
-  do jj=1,ndl
+  do jj=1,lastdl
     sh3=dlprs(1,orderdl(jj))
     sh4=dlprs(2,orderdl(jj))
     ab2=ind2(sh3,sh4)
@@ -1673,10 +1605,7 @@ do ii=1,nsd  !  (sd|dl)
     maxdmexch=max(maxdm(ind2(sh1,sh3)),maxdm(ind2(sh1,sh4)),maxdm(ind2(sh2,sh3)),&
        & maxdm(ind2(sh2,sh4)))
     maxdmval=max(maxdmcoul,.25_dp*maxdmexch)
-    if (schwsd(ordersd(ii))*schwdl(orderdl(jj))*maxdmval.lt.thr) then
-        nprsscr=nprsscr+1
-        cycle
-    end if
+    if (schwsd(ordersd(ii))*schwdl(orderdl(jj))*maxdmval.lt.thr) cycle
     call i2e_sddl(sh1,sh2,sh3,sh4,esddl)
     if (maxval(abs(esddl)).lt.thr) cycle
     ! At most we can have (ab|ac) here, so no need to do anything special.
@@ -1715,12 +1644,12 @@ if (prtlevl.ge.4) call time_diff_omp(1,"(sd|dl) integ:")
 !$OMP END MASTER
 
 !$OMP DO SCHEDULE(DYNAMIC)
-do ii=1,nsd  ! (sd|ll)
+do ii=1,lastsd  ! (sd|ll)
   sh1=sdprs(1,ordersd(ii))
   sh2=sdprs(2,ordersd(ii))
   ab1=ind2(sh1,sh2)
   ia=aosh(sh1)
-  do jj=1,nll
+  do jj=1,lastll
     sh3=llprs(1,orderll(jj))
     sh4=llprs(2,orderll(jj))
     ab2=ind2(sh3,sh4)
@@ -1728,10 +1657,7 @@ do ii=1,nsd  ! (sd|ll)
     maxdmexch=max(maxdm(ind2(sh1,sh3)),maxdm(ind2(sh1,sh4)),maxdm(ind2(sh2,sh3)),&
        & maxdm(ind2(sh2,sh4)))
     maxdmval=max(maxdmcoul,.25_dp*maxdmexch)
-    if (schwsd(ordersd(ii))*schwll(orderll(jj))*maxdmval.lt.thr) then
-       nprsscr=nprsscr+1
-       cycle
-    end if
+    if (schwsd(ordersd(ii))*schwll(orderll(jj))*maxdmval.lt.thr) cycle
     call i2e_sdll(sh1,sh2,sh3,sh4,esdll)
     if (maxval(abs(esdll)).lt.thr) cycle
     ! The only special case here is if shells sh3 and sh4 are the same.
@@ -1786,7 +1712,7 @@ if (prtlevl.ge.4) call time_diff_omp(1,"(sd|ll) integ:")
 !$OMP END MASTER
 
 !$OMP DO SCHEDULE(DYNAMIC)
-do ii=2,nsl  !  (sl|sl)
+do ii=2,lastsl  !  (sl|sl)
   sh1=slprs(1,ordersl(ii))
   sh2=slprs(2,ordersl(ii))
   ab1=ind2(sh1,sh2)
@@ -1800,10 +1726,7 @@ do ii=2,nsl  !  (sl|sl)
     maxdmexch=max(maxdm(ind2(sh1,sh3)),maxdm(ind2(sh1,sh4)),maxdm(ind2(sh2,sh3)),&
        & maxdm(ind2(sh2,sh4)))
     maxdmval=max(maxdmcoul,.25_dp*maxdmexch)
-    if (schwsl(ordersl(ii))*schwsl(ordersl(jj))*maxdmval.lt.thr) then
-        nprsscr=nprsscr+1
-        cycle
-    end if
+    if (schwsl(ordersl(ii))*schwsl(ordersl(jj))*maxdmval.lt.thr) cycle
     call i2e_slsl(sh1,sh2,sh3,sh4,eslsl)
     if (maxval(abs(eslsl)).lt.thr) cycle
     ! Since the bra and ket shell pairs cannot both be the same, at most we can have
@@ -1840,12 +1763,12 @@ if (prtlevl.ge.4) call time_diff_omp(1,"(sl|sl) integ:")
 !$OMP END MASTER
 
 !$OMP DO SCHEDULE(DYNAMIC)
-do ii=1,nsl  ! (sl|pp)
+do ii=1,lastsl  ! (sl|pp)
   sh1=slprs(1,ordersl(ii))
   sh2=slprs(2,ordersl(ii))
   ab1=ind2(sh1,sh2)
   ia=aosh(sh1)
-  do jj=1,npp
+  do jj=1,lastpp
     sh3=ppprs(1,orderpp(jj))
     sh4=ppprs(2,orderpp(jj))
     ab2=ind2(sh3,sh4)
@@ -1853,10 +1776,7 @@ do ii=1,nsl  ! (sl|pp)
     maxdmexch=max(maxdm(ind2(sh1,sh3)),maxdm(ind2(sh1,sh4)),maxdm(ind2(sh2,sh3)),&
        & maxdm(ind2(sh2,sh4)))
     maxdmval=max(maxdmcoul,.25_dp*maxdmexch)
-    if (schwsl(ordersl(ii))*schwpp(orderpp(jj))*maxdmval.lt.thr) then
-       nprsscr=nprsscr+1
-       cycle
-    end if
+    if (schwsl(ordersl(ii))*schwpp(orderpp(jj))*maxdmval.lt.thr) cycle
     call i2e_slpp(sh1,sh2,sh3,sh4,eslpp)
     if (maxval(abs(eslpp)).lt.thr) cycle
     ! The only special case here is if shells sh3 and sh4 are the same.
@@ -1913,12 +1833,12 @@ if (prtlevl.ge.4) call time_diff_omp(1,"(sl|pp) integ:")
 ! Skipping (sl|pd)
 
 !$OMP DO SCHEDULE(DYNAMIC)
-do ii=1,nsl  !  (sl|pl)
+do ii=1,lastsl  !  (sl|pl)
   sh1=slprs(1,ordersl(ii))
   sh2=slprs(2,ordersl(ii))
   ab1=ind2(sh1,sh2)
   ia=aosh(sh1)
-  do jj=1,npl 
+  do jj=1,lastpl 
     sh3=plprs(1,orderpl(jj))
     sh4=plprs(2,orderpl(jj))
     ab2=ind2(sh3,sh4)
@@ -1927,10 +1847,7 @@ do ii=1,nsl  !  (sl|pl)
     maxdmexch=max(maxdm(ind2(sh1,sh3)),maxdm(ind2(sh1,sh4)),maxdm(ind2(sh2,sh3)),&
        & maxdm(ind2(sh2,sh4)))
     maxdmval=max(maxdmcoul,.25_dp*maxdmexch)
-    if (schwsl(ordersl(ii))*schwpl(orderpl(jj))*maxdmval.lt.thr) then
-        nprsscr=nprsscr+1
-        cycle
-    end if
+    if (schwsl(ordersl(ii))*schwpl(orderpl(jj))*maxdmval.lt.thr) cycle
     call i2e_slpl(sh1,sh2,sh3,sh4,eslpl)
     if (maxval(abs(eslpl)).lt.thr) cycle
     ! at most we can have (ab|ac) here, so no need to do anything special.
@@ -1969,12 +1886,12 @@ if (prtlevl.ge.4) call time_diff_omp(1,"(sl|pl) integ:")
 !$OMP END MASTER
 
 !$OMP DO SCHEDULE(DYNAMIC)
-do ii=1,nsl  ! (sl|dd)
+do ii=1,lastsl  ! (sl|dd)
   sh1=slprs(1,ordersl(ii))
   sh2=slprs(2,ordersl(ii))
   ab1=ind2(sh1,sh2)
   ia=aosh(sh1)
-  do jj=1,ndd
+  do jj=1,lastdd
     sh3=ddprs(1,orderdd(jj))
     sh4=ddprs(2,orderdd(jj))
     ab2=ind2(sh3,sh4)
@@ -1982,10 +1899,7 @@ do ii=1,nsl  ! (sl|dd)
     maxdmexch=max(maxdm(ind2(sh1,sh3)),maxdm(ind2(sh1,sh4)),maxdm(ind2(sh2,sh3)),&
        & maxdm(ind2(sh2,sh4)))
     maxdmval=max(maxdmcoul,.25_dp*maxdmexch)
-    if (schwsl(ordersl(ii))*schwdd(orderdd(jj))*maxdmval.lt.thr) then
-       nprsscr=nprsscr+1
-       cycle
-    end if
+    if (schwsl(ordersl(ii))*schwdd(orderdd(jj))*maxdmval.lt.thr) cycle
     call i2e_sldd(sh1,sh2,sh3,sh4,esldd)
     if (maxval(abs(esldd)).lt.thr) cycle
     ! The only special case here is if shells sh3 and sh4 are the same.
@@ -2040,12 +1954,12 @@ if (prtlevl.ge.4) call time_diff_omp(1,"(sl|dd) integ:")
 !$OMP END MASTER
 
 !$OMP DO SCHEDULE(DYNAMIC)
-do ii=1,nsl  !  (sl|dl)
+do ii=1,lastsl  !  (sl|dl)
   sh1=slprs(1,ordersl(ii))
   sh2=slprs(2,ordersl(ii))
   ab1=ind2(sh1,sh2)
   ia=aosh(sh1)
-  do jj=1,ndl
+  do jj=1,lastdl
     sh3=dlprs(1,orderdl(jj))
     sh4=dlprs(2,orderdl(jj))
     ab2=ind2(sh3,sh4)
@@ -2054,10 +1968,7 @@ do ii=1,nsl  !  (sl|dl)
     maxdmexch=max(maxdm(ind2(sh1,sh3)),maxdm(ind2(sh1,sh4)),maxdm(ind2(sh2,sh3)),&
        & maxdm(ind2(sh2,sh4)))
     maxdmval=max(maxdmcoul,.25_dp*maxdmexch)
-    if (schwsl(ordersl(ii))*schwdl(orderdl(jj))*maxdmval.lt.thr) then
-        nprsscr=nprsscr+1
-        cycle
-    end if
+    if (schwsl(ordersl(ii))*schwdl(orderdl(jj))*maxdmval.lt.thr) cycle
     call i2e_sldl(sh1,sh2,sh3,sh4,esldl)
     if (maxval(abs(esldl)).lt.thr) cycle
     ! at most we can have (ab|ac) here, so no need to do anything special.
@@ -2096,12 +2007,12 @@ if (prtlevl.ge.4) call time_diff_omp(1,"(sl|dl) integ:")
 !$OMP END MASTER
 
 !$OMP DO SCHEDULE(DYNAMIC)
-do ii=1,nsl  ! (sl|ll)
+do ii=1,lastsl  ! (sl|ll)
   sh1=slprs(1,ordersl(ii))
   sh2=slprs(2,ordersl(ii))
   ab1=ind2(sh1,sh2)
   ia=aosh(sh1)
-  do jj=1,nll
+  do jj=1,lastll
     sh3=llprs(1,orderll(jj))
     sh4=llprs(2,orderll(jj))
     ab2=ind2(sh3,sh4)
@@ -2109,10 +2020,7 @@ do ii=1,nsl  ! (sl|ll)
     maxdmexch=max(maxdm(ind2(sh1,sh3)),maxdm(ind2(sh1,sh4)),maxdm(ind2(sh2,sh3)),&
        & maxdm(ind2(sh2,sh4)))
     maxdmval=max(maxdmcoul,.25_dp*maxdmexch)
-    if (schwsl(ordersl(ii))*schwll(orderll(jj))*maxdmval.lt.thr) then
-        nprsscr=nprsscr+1
-        cycle
-    end if
+    if (schwsl(ordersl(ii))*schwll(orderll(jj))*maxdmval.lt.thr) cycle
     call i2e_slll(sh1,sh2,sh3,sh4,eslll)
     if (maxval(abs(eslll)).lt.thr) cycle
     ! The only special case here is if shells sh3 and sh4 are the same.
@@ -2167,7 +2075,7 @@ if (prtlevl.ge.4) call time_diff_omp(1,"(sl|ll) integ:")
 !$OMP END MASTER
 
 !$OMP DO SCHEDULE(DYNAMIC)
-do ii=2,npp  ! (pp|pp)
+do ii=2,lastpp  ! (pp|pp)
   sh1=ppprs(1,orderpp(ii))
   sh2=ppprs(2,orderpp(ii))
   ab1=ind2(sh1,sh2)
@@ -2180,10 +2088,7 @@ do ii=2,npp  ! (pp|pp)
     maxdmexch=max(maxdm(ind2(sh1,sh3)),maxdm(ind2(sh1,sh4)),maxdm(ind2(sh2,sh3)),&
        & maxdm(ind2(sh2,sh4)))
     maxdmval=max(maxdmcoul,.25_dp*maxdmexch)
-    if (schwpp(orderpp(ii))*schwpp(orderpp(jj))*maxdmval.lt.thr) then
-        nprsscr=nprsscr+1
-        cycle
-    end if
+    if (schwpp(orderpp(ii))*schwpp(orderpp(jj))*maxdmval.lt.thr) cycle
     call i2e_pppp(sh1,sh2,sh3,sh4,epppp)
     if (maxval(abs(epppp)).lt.thr) cycle
     ! The special cases here are ij i=j, and/or k=l. It cannot be the case that i=j=k=l or that i=k and j=l, so (aa|aa) and (ab|ab) are ruled out
@@ -2293,11 +2198,11 @@ if (prtlevl.ge.4) call time_diff_omp(1,"(pp|pp) integ:")
 !$OMP END MASTER
 
 !$OMP DO SCHEDULE(DYNAMIC)
-do ii=1,npp  ! (pp|pd)
+do ii=1,lastpp  ! (pp|pd)
   sh1=ppprs(1,orderpp(ii))
   sh2=ppprs(2,orderpp(ii))
   ab1=ind2(sh1,sh2)
-  do jj=1,npd
+  do jj=1,lastpd
     sh3=pdprs(1,orderpd(jj))
     sh4=pdprs(2,orderpd(jj))
     ab2=ind2(sh3,sh4)
@@ -2305,10 +2210,7 @@ do ii=1,npp  ! (pp|pd)
     maxdmexch=max(maxdm(ind2(sh1,sh3)),maxdm(ind2(sh1,sh4)),maxdm(ind2(sh2,sh3)),&
        & maxdm(ind2(sh2,sh4)))
     maxdmval=max(maxdmcoul,.25_dp*maxdmexch)
-    if (schwpp(orderpp(ii))*schwpd(orderpd(jj))*maxdmval.lt.thr) then
-       nprsscr=nprsscr+1
-       cycle
-    end if
+    if (schwpp(orderpp(ii))*schwpd(orderpd(jj))*maxdmval.lt.thr) cycle
     call i2e_pppd(sh1,sh2,sh3,sh4,epppd)
     if (maxval(abs(epppd)).lt.thr) cycle
     ! The special case here is if shells sh1 and sh2 are the same.
@@ -2372,11 +2274,11 @@ if (prtlevl.ge.4) call time_diff_omp(1,"(pp|pd) integ:")
 !$OMP END MASTER
 
 !$OMP DO SCHEDULE(DYNAMIC)
-do ii=1,npp  ! (pp|pl)
+do ii=1,lastpp  ! (pp|pl)
   sh1=ppprs(1,orderpp(ii))
   sh2=ppprs(2,orderpp(ii))
   ab1=ind2(sh1,sh2)
-  do jj=1,npl
+  do jj=1,lastpl
     sh3=plprs(1,orderpl(jj))
     sh4=plprs(2,orderpl(jj))
     ab2=ind2(sh3,sh4)
@@ -2384,10 +2286,7 @@ do ii=1,npp  ! (pp|pl)
     maxdmexch=max(maxdm(ind2(sh1,sh3)),maxdm(ind2(sh1,sh4)),maxdm(ind2(sh2,sh3)),&
        & maxdm(ind2(sh2,sh4)))
     maxdmval=max(maxdmcoul,.25_dp*maxdmexch)
-    if (schwpp(orderpp(ii))*schwpl(orderpl(jj))*maxdmval.lt.thr) then
-       nprsscr=nprsscr+1
-       cycle
-    end if
+    if (schwpp(orderpp(ii))*schwpl(orderpl(jj))*maxdmval.lt.thr) cycle
     call i2e_pppl(sh1,sh2,sh3,sh4,epppl)
     if (maxval(abs(epppl)).lt.thr) cycle
     ! The special case here is if shells sh1 and sh2 are the same.
@@ -2451,12 +2350,12 @@ if (prtlevl.ge.4) call time_diff_omp(1,"(pp|pl) integ:")
 !$OMP END MASTER
 
 !$OMP DO SCHEDULE(DYNAMIC)
-do ii=1,npp  ! (pp|dd)
+do ii=1,lastpp  ! (pp|dd)
   sh1=ppprs(1,orderpp(ii))
   sh2=ppprs(2,orderpp(ii))
   ab1=ind2(sh1,sh2)
   sameij=(sh1.eq.sh2)
-  do jj=1,ndd
+  do jj=1,lastdd
     sh3=ddprs(1,orderdd(jj))
     sh4=ddprs(2,orderdd(jj))
     ab2=ind2(sh3,sh4)
@@ -2464,10 +2363,7 @@ do ii=1,npp  ! (pp|dd)
     maxdmexch=max(maxdm(ind2(sh1,sh3)),maxdm(ind2(sh1,sh4)),maxdm(ind2(sh2,sh3)),&
        & maxdm(ind2(sh2,sh4)))
     maxdmval=max(maxdmcoul,.25_dp*maxdmexch)
-    if (schwpp(orderpp(ii))*schwdd(orderdd(jj))*maxdmval.lt.thr) then
-        nprsscr=nprsscr+1
-        cycle
-    end if
+    if (schwpp(orderpp(ii))*schwdd(orderdd(jj))*maxdmval.lt.thr) cycle
     call i2e_ppdd(sh1,sh2,sh3,sh4,eppdd)
     if (maxval(abs(eppdd)).lt.thr) cycle
     ! The special cases here are ij i=j, and/or k=l.
@@ -2573,12 +2469,12 @@ if (prtlevl.ge.4) call time_diff_omp(1,"(pp|dd) integ:")
 
 
 !$OMP DO SCHEDULE(DYNAMIC)
-do ii=1,npp  ! (pp|ll)
+do ii=1,lastpp  ! (pp|ll)
   sh1=ppprs(1,orderpp(ii))
   sh2=ppprs(2,orderpp(ii))
   ab1=ind2(sh1,sh2)
   sameij=(sh1.eq.sh2)
-  do jj=1,nll 
+  do jj=1,lastll 
     sh3=llprs(1,orderll(jj))
     sh4=llprs(2,orderll(jj))
     ab2=ind2(sh3,sh4)
@@ -2586,10 +2482,7 @@ do ii=1,npp  ! (pp|ll)
     maxdmexch=max(maxdm(ind2(sh1,sh3)),maxdm(ind2(sh1,sh4)),maxdm(ind2(sh2,sh3)),&
        & maxdm(ind2(sh2,sh4)))
     maxdmval=max(maxdmcoul,.25_dp*maxdmexch)
-    if (schwpp(orderpp(ii))*schwll(orderll(jj))*maxdmval.lt.thr) then
-        nprsscr=nprsscr+1
-        cycle
-    end if
+    if (schwpp(orderpp(ii))*schwll(orderll(jj))*maxdmval.lt.thr) cycle
     call i2e_ppll(sh1,sh2,sh3,sh4,eppll)
     if (maxval(abs(eppll)).lt.thr) cycle
     ! The special cases here are ij i=j, and/or k=l.
@@ -2692,7 +2585,7 @@ if (prtlevl.ge.4) call time_diff_omp(1,"(pp|ll) integ:")
 !$OMP END MASTER
 
 !$OMP DO SCHEDULE(DYNAMIC)
-do ii=2,npd  !  (pd|pd)
+do ii=2,lastpd  !  (pd|pd)
   sh1=pdprs(1,orderpd(ii))
   sh2=pdprs(2,orderpd(ii))
   ab1=ind2(sh1,sh2)
@@ -2706,10 +2599,7 @@ do ii=2,npd  !  (pd|pd)
     maxdmexch=max(maxdm(ind2(sh1,sh3)),maxdm(ind2(sh1,sh4)),maxdm(ind2(sh2,sh3)),&
        & maxdm(ind2(sh2,sh4)))
     maxdmval=max(maxdmcoul,.25_dp*maxdmexch)
-    if (schwpd(orderpd(ii))*schwpd(orderpd(jj))*maxdmval.lt.thr) then
-        nprsscr=nprsscr+1
-        cycle
-    end if
+    if (schwpd(orderpd(ii))*schwpd(orderpd(jj))*maxdmval.lt.thr) cycle
     call i2e_pdpd(sh1,sh2,sh3,sh4,epdpd)
     if (maxval(abs(epdpd)).lt.thr) cycle
     ! Since the bra and ket shell pairs cannot both be the same, at most we can have
@@ -2755,12 +2645,12 @@ if (prtlevl.ge.4) call time_diff_omp(1,"(pd|pd) integ:")
 ! Skipping (pd|pl)
 
 !$OMP DO SCHEDULE(DYNAMIC)
-do ii=1,npd  ! (pd|dd)
+do ii=1,lastpd  ! (pd|dd)
   sh1=pdprs(1,orderpd(ii))
   sh2=pdprs(2,orderpd(ii))
   ab1=ind2(sh1,sh2)
   ia=aosh(sh1)
-  do jj=1,ndd
+  do jj=1,lastdd
     sh3=ddprs(1,orderdd(jj))
     sh4=ddprs(2,orderdd(jj))
     ab2=ind2(sh3,sh4)
@@ -2768,10 +2658,7 @@ do ii=1,npd  ! (pd|dd)
     maxdmexch=max(maxdm(ind2(sh1,sh3)),maxdm(ind2(sh1,sh4)),maxdm(ind2(sh2,sh3)),&
        & maxdm(ind2(sh2,sh4)))
     maxdmval=max(maxdmcoul,.25_dp*maxdmexch)
-    if (schwpd(orderpd(ii))*schwdd(orderdd(jj))*maxdmval.lt.thr) then
-       nprsscr=nprsscr+1
-       cycle
-    end if
+    if (schwpd(orderpd(ii))*schwdd(orderdd(jj))*maxdmval.lt.thr) cycle
     call i2e_pddd(sh1,sh2,sh3,sh4,epddd)
     if (maxval(abs(epddd)).lt.thr) cycle
     ! The only special case here is if shells sh3 and sh4 are the same.
@@ -2832,7 +2719,7 @@ if (prtlevl.ge.4) call time_diff_omp(1,"(pd|dd) integ:")
 ! Skipping (pd|dl) and (pd|ll)
 
 !$OMP DO SCHEDULE(DYNAMIC)
-do ii=2,npl  !  (pl|pl)
+do ii=2,lastpl  !  (pl|pl)
   sh1=plprs(1,orderpl(ii))
   sh2=plprs(2,orderpl(ii))
   ab1=ind2(sh1,sh2)
@@ -2846,10 +2733,7 @@ do ii=2,npl  !  (pl|pl)
     maxdmexch=max(maxdm(ind2(sh1,sh3)),maxdm(ind2(sh1,sh4)),maxdm(ind2(sh2,sh3)),&
        & maxdm(ind2(sh2,sh4)))
     maxdmval=max(maxdmcoul,.25_dp*maxdmexch)
-    if (schwpl(orderpl(ii))*schwpl(orderpl(jj))*maxdmval.lt.thr) then
-        nprsscr=nprsscr+1
-        cycle
-    end if
+    if (schwpl(orderpl(ii))*schwpl(orderpl(jj))*maxdmval.lt.thr) cycle
     call i2e_plpl(sh1,sh2,sh3,sh4,eplpl)
     if (maxval(abs(eplpl)).lt.thr) cycle
     ! Since the bra and ket shell pairs cannot both be the same, at most we can have
@@ -2895,12 +2779,12 @@ if (prtlevl.ge.4) call time_diff_omp(1,"(pl|pl) integ:")
 ! Skipping (pl|dd) and (pl|dl)
 
 !$OMP DO SCHEDULE(DYNAMIC)
-do ii=1,npl  ! (pl|ll)
+do ii=1,lastpl  ! (pl|ll)
   sh1=plprs(1,orderpl(ii))
   sh2=plprs(2,orderpl(ii))
   ab1=ind2(sh1,sh2)
   ia=aosh(sh1)
-  do jj=1,nll
+  do jj=1,lastll
     sh3=llprs(1,orderll(jj))
     sh4=llprs(2,orderll(jj))
     ab2=ind2(sh3,sh4)
@@ -2908,10 +2792,7 @@ do ii=1,npl  ! (pl|ll)
     maxdmexch=max(maxdm(ind2(sh1,sh3)),maxdm(ind2(sh1,sh4)),maxdm(ind2(sh2,sh3)),&
        & maxdm(ind2(sh2,sh4)))
     maxdmval=max(maxdmcoul,.25_dp*maxdmexch)
-    if (schwpl(orderpl(ii))*schwll(orderll(jj))*maxdmval.lt.thr) then
-       nprsscr=nprsscr+1
-       cycle
-    end if
+    if (schwpl(orderpl(ii))*schwll(orderll(jj))*maxdmval.lt.thr) cycle
     call i2e_plll(sh1,sh2,sh3,sh4,eplll)
     if (maxval(abs(eplll)).lt.thr) cycle
     ! The only special case here is if shells sh3 and sh4 are the same.
@@ -2969,7 +2850,7 @@ if (prtlevl.ge.4) call time_diff_omp(1,"(pl|ll) integ:")
 !$OMP END MASTER
 
 !$OMP DO SCHEDULE(DYNAMIC)
-do ii=2,ndd  ! (dd|dd)
+do ii=2,lastdd  ! (dd|dd)
   sh1=ddprs(1,orderdd(ii))
   sh2=ddprs(2,orderdd(ii))
   ab1=ind2(sh1,sh2)
@@ -2982,10 +2863,7 @@ do ii=2,ndd  ! (dd|dd)
     maxdmexch=max(maxdm(ind2(sh1,sh3)),maxdm(ind2(sh1,sh4)),maxdm(ind2(sh2,sh3)),&
        & maxdm(ind2(sh2,sh4)))
     maxdmval=max(maxdmcoul,.25_dp*maxdmexch)
-    if (schwdd(orderdd(ii))*schwdd(orderdd(jj))*maxdmval.lt.thr) then
-        nprsscr=nprsscr+1
-        cycle
-    end if
+    if (schwdd(orderdd(ii))*schwdd(orderdd(jj))*maxdmval.lt.thr) cycle
     call i2e_dddd(sh1,sh2,sh3,sh4,edddd)
     if (maxval(abs(edddd)).lt.thr) cycle
     ! The special cases here are ij i=j, and/or k=l. It cannot be the case that i=j=k=l or that i=k and j=l, so (aa|aa) and (ab|ab) are ruled out
@@ -3088,11 +2966,11 @@ if (prtlevl.ge.4) call time_diff_omp(1,"(dd|dd) integ:")
 !$OMP END MASTER
 
 !$OMP DO SCHEDULE(DYNAMIC)
-do ii=1,ndd  ! (dd|dl)
+do ii=1,lastdd  ! (dd|dl)
   sh1=ddprs(1,orderdd(ii))
   sh2=ddprs(2,orderdd(ii))
   ab1=ind2(sh1,sh2)
-  do jj=1,ndl
+  do jj=1,lastdl
     sh3=dlprs(1,orderdl(jj))
     sh4=dlprs(2,orderdl(jj))
     ab2=ind2(sh3,sh4)
@@ -3100,10 +2978,7 @@ do ii=1,ndd  ! (dd|dl)
     maxdmexch=max(maxdm(ind2(sh1,sh3)),maxdm(ind2(sh1,sh4)),maxdm(ind2(sh2,sh3)),&
        & maxdm(ind2(sh2,sh4)))
     maxdmval=max(maxdmcoul,.25_dp*maxdmexch)
-    if (schwdd(orderdd(ii))*schwdl(orderdl(jj))*maxdmval.lt.thr) then
-       nprsscr=nprsscr+1
-       cycle
-    end if
+    if (schwdd(orderdd(ii))*schwdl(orderdl(jj))*maxdmval.lt.thr) cycle
     call i2e_dddl(sh1,sh2,sh3,sh4,edddl)
     if (maxval(abs(edddl)).lt.thr) cycle
     ! The special case here is if shells sh1 and sh2 are the same.
@@ -3167,12 +3042,12 @@ if (prtlevl.ge.4) call time_diff_omp(1,"(dd|dl) integ:")
 !$OMP END MASTER
 
 !$OMP DO SCHEDULE(DYNAMIC)
-do ii=1,ndd  ! (dd|ll)
+do ii=1,lastdd  ! (dd|ll)
   sh1=ddprs(1,orderdd(ii))
   sh2=ddprs(2,orderdd(ii))
   ab1=ind2(sh1,sh2)
   sameij=(sh1.eq.sh2)
-  do jj=1,nll 
+  do jj=1,lastll 
     sh3=llprs(1,orderll(jj))
     sh4=llprs(2,orderll(jj))
     ab2=ind2(sh3,sh4)
@@ -3180,10 +3055,7 @@ do ii=1,ndd  ! (dd|ll)
     maxdmexch=max(maxdm(ind2(sh1,sh3)),maxdm(ind2(sh1,sh4)),maxdm(ind2(sh2,sh3)),&
        & maxdm(ind2(sh2,sh4)))
     maxdmval=max(maxdmcoul,.25_dp*maxdmexch)
-    if (schwdd(orderdd(ii))*schwll(orderll(jj))*maxdmval.lt.thr) then
-        nprsscr=nprsscr+1
-        cycle
-    end if
+    if (schwdd(orderdd(ii))*schwll(orderll(jj))*maxdmval.lt.thr) cycle
     call i2e_ddll(sh1,sh2,sh3,sh4,eddll)
     if (maxval(abs(eddll)).lt.thr) cycle
     ! The special cases here are ij i=j, and/or k=l.
@@ -3286,7 +3158,7 @@ if (prtlevl.ge.4) call time_diff_omp(1,"(dd|ll) integ:")
 !$OMP END MASTER
 
 !$OMP DO SCHEDULE(DYNAMIC)
-do ii=2,ndl  !  (dl|dl)
+do ii=2,lastdl  !  (dl|dl)
   sh1=dlprs(1,orderdl(ii))
   sh2=dlprs(2,orderdl(ii))
   ab1=ind2(sh1,sh2)
@@ -3300,10 +3172,7 @@ do ii=2,ndl  !  (dl|dl)
     maxdmexch=max(maxdm(ind2(sh1,sh3)),maxdm(ind2(sh1,sh4)),maxdm(ind2(sh2,sh3)),&
        & maxdm(ind2(sh2,sh4)))
     maxdmval=max(maxdmcoul,.25_dp*maxdmexch)
-    if (schwdl(orderdl(ii))*schwdl(orderdl(jj))*maxdmval.lt.thr) then
-        nprsscr=nprsscr+1
-        cycle
-    end if
+    if (schwdl(orderdl(ii))*schwdl(orderdl(jj))*maxdmval.lt.thr) cycle
     call i2e_dldl(sh1,sh2,sh3,sh4,edldl)
     if (maxval(abs(edldl)).lt.thr) cycle
     ! Since the bra and ket shell pairs cannot both be the same, at most we can have
@@ -3346,12 +3215,12 @@ if (prtlevl.ge.4) call time_diff_omp(1,"(dl|dl) integ:")
 !$OMP END MASTER
 
 !$OMP DO SCHEDULE(DYNAMIC)
-do ii=1,ndl  ! (dl|ll)
+do ii=1,lastdl  ! (dl|ll)
   sh1=dlprs(1,orderdl(ii))
   sh2=dlprs(2,orderdl(ii))
   ab1=ind2(sh1,sh2)
   ia=aosh(sh1)
-  do jj=1,nll
+  do jj=1,lastll
     sh3=llprs(1,orderll(jj))
     sh4=llprs(2,orderll(jj))
     ab2=ind2(sh3,sh4)
@@ -3359,10 +3228,7 @@ do ii=1,ndl  ! (dl|ll)
     maxdmexch=max(maxdm(ind2(sh1,sh3)),maxdm(ind2(sh1,sh4)),maxdm(ind2(sh2,sh3)),&
        & maxdm(ind2(sh2,sh4)))
     maxdmval=max(maxdmcoul,.25_dp*maxdmexch)
-    if (schwdl(orderdl(ii))*schwll(orderll(jj))*maxdmval.lt.thr) then
-       nprsscr=nprsscr+1
-       cycle
-    end if
+    if (schwdl(orderdl(ii))*schwll(orderll(jj))*maxdmval.lt.thr) cycle
     call i2e_dlll(sh1,sh2,sh3,sh4,edlll)
     if (maxval(abs(edlll)).lt.thr) cycle
     ! The only special case here is if shells sh3 and sh4 are the same.
@@ -3420,7 +3286,7 @@ if (prtlevl.ge.4) call time_diff_omp(1,"(dl|ll) integ:")
 !$OMP END MASTER
 
 !$OMP DO SCHEDULE(DYNAMIC)
-do ii=2,nll  ! (ll|ll)
+do ii=2,lastll  ! (ll|ll)
   sh1=llprs(1,orderll(ii))
   sh2=llprs(2,orderll(ii))
   ab1=ind2(sh1,sh2)
@@ -3433,10 +3299,7 @@ do ii=2,nll  ! (ll|ll)
     maxdmexch=max(maxdm(ind2(sh1,sh3)),maxdm(ind2(sh1,sh4)),maxdm(ind2(sh2,sh3)),&
        & maxdm(ind2(sh2,sh4)))
     maxdmval=max(maxdmcoul,.25_dp*maxdmexch)
-    if (schwll(orderll(ii))*schwll(orderll(jj))*maxdmval.lt.thr) then
-        nprsscr=nprsscr+1
-        cycle
-    end if
+    if (schwll(orderll(ii))*schwll(orderll(jj))*maxdmval.lt.thr) cycle
     call i2e_llll(sh1,sh2,sh3,sh4,ellll)
     if (maxval(abs(ellll)).lt.thr) cycle
     ! The special cases here are ij i=j, and/or k=l. It cannot be the case that i=j=k=l or that i=k and j=l, so (aa|aa) and (ab|ab) are ruled out

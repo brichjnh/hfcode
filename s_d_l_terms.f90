@@ -13,9 +13,9 @@ real(dp), intent(out) :: edlll(5,4,4,4)
 
 integer(i4b) :: j,l,jm1,lm1,li,lf, bigL, i, ip1, jj, jp1, k, kp1 , lp1
 integer(i4b) :: ab, cd, za, zb, zc, zd, zza, zzc, zzab, zzcd, m, jrec
-real(dp) :: ooppq, qpq, poq, delv(3),qoppq, rpq2, fac1
+real(dp) :: ooppq, qpq, poq, delv(3),qoppq, rpq2
 real(dp) :: rba(3), rdc(3), wx(3)
-real(dp) :: bfac(0:5), osv(56,0:5),oset(56,10), rap(3), rpw(3), osc
+real(dp) :: bfac(0:5), osv(56,0:5),oset(56,10), rap(3), rpw(3)
 real(dp) :: oshb(20,4,10), oshk(6,4,10,4), dlllc(6,4,4,4), oshbc(6,4,10)
 real(dp) :: afac(0:3)
 
@@ -176,7 +176,7 @@ real(dp), intent(out) :: eddll(5,5,4,4)
 
 integer(i4b) :: j,l,jm1,lm1,li,lf, bigL, i, ip1, jj, jp1, k, kp1 , lp1
 integer(i4b) :: ab, cd, za, zb, zc, zd, zza, zzc, zzab, zzcd, m, jrec
-real(dp) :: ooppq, qpq, poq, delv(3), qoppq, rpq2, fac1
+real(dp) :: ooppq, qpq, poq, delv(3), qoppq, rpq2
 real(dp) :: rba(3), rdc(3), wx(3)
 real(dp) :: bfac(0:6), osv(84,0:6),oset(84,10), rap(3), rpw(3)
 real(dp) :: oshb(35,10,10), oshk(6,6,10,4), ddllc(6,6,4,4)
@@ -358,10 +358,10 @@ real(dp), intent(out) :: edldl(5,4,5,4)
 
 integer(i4b) :: j,l,jm1,lm1,li,lf, bigL, i, ip1, jj, jp1, k, kp1 , lp1
 integer(i4b) :: ab, cd, za, zb, zc, zd, zza, zzc, zzab, zzcd, m, jrec
-real(dp) :: ooppq, qpq, poq, delv(3), qoppq, rpq2, fac1
+real(dp) :: ooppq, qpq, poq, delv(3), qoppq, rpq2
 real(dp) :: rba(3), rdc(3), wx(3)
 real(dp) :: bfac(0:6), osv(84,0:6),oset(84,20), rap(3), rpw(3)
-real(dp) :: osc(20,20), oshb(20,4,20), oshk(6,4,20,4), dldlc(6,4,6,4)
+real(dp) :: oshb(20,4,20), oshk(6,4,20,4), dldlc(6,4,6,4)
 real(dp) :: afac(0:4), tmpk(6,4,5,4)
 
 ! This is my first try at doing the Giese thing - first build [ss|sk] (k has L = 8)
@@ -544,9 +544,9 @@ implicit none
 integer(i4b), intent(in) :: sh1,sh2,sh3,sh4
 real(dp), intent(out) :: edddl(5,5,5,4)
 
-integer(i4b) :: j,l,jm1,lm1,li,lf, bigL, i, ip1, jj, jp1, k, kp1 , lp1
+integer(i4b) :: j, l, jm1, lm1, li, lf, bigL, i, jj, jp1, k, kp1 , lp1
 integer(i4b) :: ab, cd, za, zb, zc, zd, zza, zzc, zzab, zzcd, m, jrec
-real(dp) :: ooppq, qpq, poq, delv(3), qoppq, rpq2, fac1
+real(dp) :: ooppq, qpq, poq, delv(3), qoppq, rpq2
 real(dp) :: rba(3), rdc(3), wx(3)
 real(dp) :: bfac(0:7), osv(120,0:7),oset(120,20), rap(3), rpw(3), osetc(35,20)
 real(dp) :: hgpb(35,10,6,4), hgpkc(35,6,4), hgpk(35,20,4), dddlc(6,6,6,4)
@@ -758,9 +758,9 @@ implicit none
 integer(i4b), intent(in) :: sh1,sh2,sh3,sh4
 real(dp), intent(out) :: essdl(5,4)
 
-integer(i4b) :: ab, cd, za, zb, zc, zd, zza, zzc, zzab, zzcd, m, lp1, l, lm1
+integer(i4b) :: ab, cd, za, zb, zc, zd, zza, zzc, zzab, zzcd, m
 integer(i4b) :: kp1, k, jj, kk, jrec, km1
-real(dp) :: ooppq, qpq, oo2q, poppq, rpq2, fac1,afac(0:1), wx(3)
+real(dp) :: ooppq, qpq, poppq, rpq2, afac(0:1), wx(3)
 real(dp) :: bfac(0:3), os(10,4,0:3), osc(6,4), rdq(3), rqw(3), rcq(3)
 
 ! First assemble the [ss|sx] (x=s,p,d) integrals and contract them
@@ -842,9 +842,9 @@ implicit none
 integer(i4b), intent(in) :: sh1,sh2,sh3,sh4
 real(dp), intent(out) :: esdsl(5,4)
 
-integer(i4b) :: j,l,jm1,lm1, lp1, jj, jp1, kk, jrec
+integer(i4b) :: j, l, jm1, jj, jp1, kk, jrec
 integer(i4b) :: ab, cd, za, zb, zc, zd, zza, zzc, zzab, zzcd, m
-real(dp) :: ooppq, qpq, oo2q, qoppq, rpq2, fac1, wx(3)
+real(dp) :: ooppq, qpq, qoppq, rpq2, wx(3)
 real(dp) :: bfac(0:3), os(10,4,0:3), rbp(3), rpw(3), rdq(3), rqw(3)
 real(dp) :: afac(0:1)
 real(dp) :: ketc(6,4),osc(6,4)
@@ -932,7 +932,7 @@ implicit none
 integer(i4b), intent(in) :: sh1,sh2,sh3,sh4
 real(dp), intent(out) :: esldl(4,5,4)
 
-integer(i4b) :: j,l,jm1,lm1,lp1, k, kp1, bigL, jj, jp1, li, lf, jrec
+integer(i4b) :: j, l, lm1, lp1, k, kp1, bigL, jj, jp1, li, lf, jrec
 integer(i4b) :: ab, cd, za, zb, zc, zd, zza, zzc, zzab, zzcd, m
 real(dp) :: ooppq, qpq, qop, poppq, rpq2
 real(dp) :: bfac(0:4), osv(35,0:4),oset(4,35),osh(4,20,4), rcq(3), rqw(3)
@@ -1054,7 +1054,7 @@ implicit none
 integer(i4b), intent(in) :: sh1,sh2,sh3,sh4
 real(dp), intent(out) :: esdll(5,4,4)
 
-integer(i4b) :: j,l,jm1,ip1, k, kp1, bigL, jj, jp1, li, lf, lp1, lm1, i
+integer(i4b) :: j,l,jm1,ip1, k, bigL, jj, jp1, li, lf, lp1, lm1
 integer(i4b) :: ab, cd, za, zb, zc, zd, zza, zzc, zzab, zzcd, m, jrec
 real(dp) :: ooppq, qpq, qop, poppq, rpq2
 real(dp) :: bfac(0:4), osv(35,0:4),oset(10,35), rdq(3), rqw(3)
@@ -1204,7 +1204,7 @@ implicit none
 integer(i4b), intent(in) :: sh1,sh2,sh3,sh4
 real(dp), intent(out) :: esldd(4,5,5)
 
-integer(i4b) :: j,l,jm1,lm1,lp1, k, kp1, bigL, jj, jp1, li, lf, jrec
+integer(i4b) :: j,l, lm1,lp1, k, kp1, bigL, jj, jp1, li, lf, jrec
 integer(i4b) :: ab, cd, za, zb, zc, zd, zza, zzc, zzab, zzcd, m
 real(dp) :: ooppq, qpq, qop, poppq, rpq2
 real(dp) :: bfac(0:5), osv(56,0:5),oset(4,56), rdq(3), rqw(3)
@@ -1512,7 +1512,7 @@ integer(i4b), intent(in) :: sh1,sh2,sh3,sh4
 real(dp), intent(out) :: esssl(4)
 
 integer(i4b) :: ab, cd, za, zb, zc, zd, zza, zzc, zzab, zzcd
-real(dp) :: ooppq, qpq, poppq, rpq2, vec(3)
+real(dp) :: ooppq, qpq, rpq2, vec(3)
 real(dp) :: bfac(0:1), os(0:1), rdq(3), rqw(3), wx(3), osc(4)
 
 ab=ind2(sh1,sh2)
@@ -1566,7 +1566,7 @@ integer(i4b), intent(in) :: sh1,sh2,sh3,sh4
 real(dp), intent(out) :: essll(4,4)
 
 integer(i4b) :: ab, cd, za, zb, zc, zd, zza, zzc, zzab, zzcd, m
-integer(i4b) :: k, l, km1, lm1, jj
+integer(i4b) :: k, jj
 real(dp) :: ooppq,poppq, rpq2, gg, fac, qpq
 real(dp) :: bfac(0:2), os(4,4,0:2), osc(4,4), rcq(3), rdq(3), rqw(3), wx(3)
 
@@ -1633,10 +1633,10 @@ implicit none
 integer(i4b), intent(in) :: sh1,sh2,sh3,sh4
 real(dp), intent(out) :: eslsl(4,4)
 
-integer(i4b) :: ab, cd, za, zb, zc, zd, zza, zzc, zzab, zzcd, m
-integer(i4b) :: j, jm1, l, jj
-real(dp) :: ooppq, qpq, ooq, oop, poppq, qoppq, rpq2, fac1, wx(3)
-real(dp) :: sterm(0:2), pterml(3,0:1), ptermj(3)
+integer(i4b) :: ab, cd, za, zb, zc, zd, zzab, zzcd, m
+integer(i4b) :: j
+real(dp) :: ooppq, qpq, qoppq, rpq2, fac1, wx(3)
+real(dp) :: sterm(0:2), pterml(3,0:1)
 real(dp) :: bfac(0:2), osc(4,4), os(4,4), rbp(3), rpw(3), rdq(3), rqw(3), gg
 
 ! Simply assemble the [sx|sy] (x,y=s,p) integrals and contract them
@@ -1702,7 +1702,7 @@ real(dp), intent(out) :: eslll(4,4,4)
 
 integer(i4b) :: ab, cd, za, zb, zc, zd, zza, zzc, zzab, zzcd, m, jj, k
 real(dp) :: ooppq, qpq, poppq, qoppq, rpq2
-real(dp) :: ggjl, ggjk, ggkl, fackl(0:1), facjl(0:1), facjk(0:1), vec(3)
+real(dp) :: ggkl, fackl(0:1), facjl(0:1), facjk(0:1), vec(3)
 real(dp) :: sterm(0:3), ptermj(3,0:2),ptermk(3,0:2), pterml(3,0:2)
 
 real(dp) :: bfac(0:3), os(4,4,4,0:1), osc(4,4,4), rpw(3), rbp(3), rcq(3),rdq(3), rqw(3), wx(3)

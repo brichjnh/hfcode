@@ -5,7 +5,7 @@ implicit none
 ! re-jig the order of the shells. Make all s shells come first, then p, then d (with perhaps l also)
 ! From basnspd we know how many of each shell type are on each atom. The first block works out the n. of atoms.
 
-integer(i4b) :: i,ii,j,jj,js,jp,k,kk, atmap
+integer(i4b) :: i, ii, j, k, atmap
 integer(i4b) :: ish, ishs, ishp, ishd, iao, jshs, jshp, jshd, ishl, jshl
 character(len=1) :: labsh
 

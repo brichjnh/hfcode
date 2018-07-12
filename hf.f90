@@ -4,7 +4,7 @@ implicit none
 
 real(dp), parameter :: eps=1.d-12
 character(len=30) :: arg(4), infile, basfile, outfile
-integer(i4b) :: i, j, k, l, walltime
+integer(i4b) :: i
 
 do i=1,3
    CALL get_command_argument(i, arg(i))

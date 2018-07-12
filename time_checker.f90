@@ -40,7 +40,6 @@ implicit none
 integer(i4b), intent(in) ::ff
 real(dp), intent(out) :: cyctime,tottime
 
-integer(i4b) :: tmin
 real(dp), save :: t0, tnow, tprec
 
 cyctime=0._dp
@@ -68,7 +67,6 @@ integer(i4b), intent(in) ::ff
 character(len=*), intent(in) :: titstring
 real(dp) :: cyctime,tottime
 
-integer(i4b) :: tmin
 real(dp), save :: t0, tnow, tprec
 
 cyctime=0._dp

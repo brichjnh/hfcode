@@ -7,8 +7,8 @@ implicit none
 save
 
 integer(i4b), parameter :: maxat=200        ! Maximum total number of atoms
-integer(i4b), parameter :: maxb=800        ! Maximum total number of basis functions
-integer(i4b), parameter :: maxsh=200        ! Maximum total number of shells
+! integer(i4b), parameter :: maxb=800        ! Maximum total number of basis functions
+! integer(i4b), parameter :: maxsh=200        ! Maximum total number of shells
 integer(i4b), parameter :: maxelbas=18     ! maximum number of element in a basis file
 integer(i4b), parameter :: maxfuncel=10    ! maximum number of basis function shells for a given atom
 integer(i4b), parameter :: maxfuncat=40    ! maximum number of basis functions for a given atom
@@ -145,6 +145,7 @@ real(dp), allocatable :: schw(:)         ! square root of each 'diagonal' (ab|ab
 real(dp), allocatable :: schwss(:), schwsp(:), schwsd(:), schwsl(:), schwpp(:), schwpd(:)
 real(dp), allocatable :: schwpl(:), schwdd(:), schwdl(:), schwll(:)
 integer(i4b), allocatable :: orderss(:), ordersp(:), ordersd(:), ordersl(:), orderpp(:), orderpd(:)
+integer(i4b) :: lastss, lastsp, lastsd, lastsl, lastpp, lastpd, lastpl, lastdd, lastdl, lastll
 integer(i4b), allocatable :: orderpl(:), orderdd(:), orderdl(:), orderll(:)   ! integer arrays storing the order of size of Schwartz terms
 real(dp), allocatable :: s1e(:,:)        ! One electron integrals
 real(dp), allocatable :: t1e(:,:)        ! Kinetic energy integrals
@@ -159,6 +160,7 @@ integer(i4b), allocatable :: indabab(:,:)
 integer(i4b), allocatable :: indaabc(:,:)
 integer(i4b), allocatable :: indabcd(:,:)
 real(dp), parameter :: intthresh=1.d-10
+real(dp), parameter :: shthresh=intthresh/10._dp
 real(dp), parameter :: schwthresh=1.d-10
 real(dp), allocatable :: i2e(:)
 real(dp), allocatable :: i2e4i(:,:,:,:)

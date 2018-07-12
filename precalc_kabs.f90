@@ -6,10 +6,9 @@ implicit none
 !  and that are needed for evaluating TEIs.
 ! These are p = a+b, pm1=1/p, q = ab/(a+b), Px=(aAx + bBx)/p, Kab = exp(-q*rab**2)/p*djk(a)*djk(b)
 
-integer(i4b) :: sh1, sh2, aind, ab, zzab, za, zb, zza
+integer(i4b) :: sh1, sh2, ab, zzab, za, zb, zza
 integer(i4b) :: i, jss,jsp,jsd,jsl,jpp,jpd,jpl,jdd,jdl,jll
-real(dp) :: rab(3), extrathresh
-character(3) :: bla
+real(dp) :: extrathresh
 
 extrathresh=intthresh*0.01_dp
 

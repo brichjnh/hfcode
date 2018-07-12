@@ -8,7 +8,6 @@ real(dp), intent(in) :: p(nb,nb), thr
 real(dp), intent(inout) :: f(nb,nb)
 
 integer(i4b) :: i, j, k, l, ii, ia, ja, ka, la, sh1, sh2, ao1, ao2
-logical(lgt) :: diis, sameatab, sameabab, allsame, sameij, samejk, samekl
 real(dp) :: essss, espsp(3,3), esdsd(5,5), epppp(3,3,3,3), epdpd(3,5,3,5), fac
 real(dp) :: eslsl(4,4), eplpl(3,4,3,4), edddd(5,5,5,5), ellll(4,4,4,4), edldl(5,4,5,4)
 real(dp) :: maxdm(nab), maxdmval

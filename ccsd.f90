@@ -5,7 +5,7 @@ implicit none
 integer(i4b) :: nm, no, nv
 integer(i4b) :: i,j,k,l,ii,jj,kk,ll,m,n,a,b,e,f
 integer(i4b) :: iter
-real(dp) :: fac1, fac2, fac3, fac4, fac5, mp2check, ecc
+real(dp) :: fac1, fac2, fac3, mp2check, ecc
 real(dp), allocatable :: tei(:,:,:,:), oe(:), t1(:,:), t1n(:,:)
 real(dp), allocatable :: t2(:,:,:,:), t2n(:,:,:,:), tau(:,:,:,:)
 real(dp), allocatable :: frdii(:,:), frdie(:,:), frdee(:,:)

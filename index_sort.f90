@@ -90,3 +90,30 @@ if (arr(j) .gt. arr(i)) then
 end if
 END SUBROUTINE icomp_xchg
 END SUBROUTINE index_sort
+
+
+subroutine find_threshold(n,arr,indarr,thresh,locthresh)
+USE nrtype
+implicit none
+
+integer(i4b), intent(in) :: n, indarr(n)
+REAL(dP), INTENT(IN) :: arr(n), thresh
+integer(i4b), intent(out) :: locthresh
+
+integer(i4b) :: i
+
+if (arr(indarr(1)).lt.thresh) then
+   locthresh=1
+   return
+else if (arr(indarr(n)).gt.thresh) then
+   locthresh=n
+   return
+end if
+do i=1,n
+  if (arr(indarr(i)).lt.thresh) then
+    locthresh=i
+    return
+  end if
+end do
+
+end subroutine find_threshold

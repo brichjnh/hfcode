@@ -7,7 +7,7 @@ implicit none
 character(len=30), intent(in) :: basfile
 
 character(len=30) :: bla
-integer(i4b) :: i,j,k,lbas,nz, nbfsel, ii, jj,kk, ioerror, dmat
+integer(i4b) :: i,j,k,lbas,nz, nbfsel, ii, jj,kk, dmat
 
 open(unit=8,file=basfile)
 read(8,*) bla,nbasats,dmat
@@ -114,7 +114,7 @@ real(dp), intent(in) :: zetas(n)
 real(dp), intent(inout) :: coefs(n)
 
 integer(i4b) :: i, j
-real(dp) :: a,b,p,pow,ofac, nfac, fac1
+real(dp) :: a, b, p, ofac, nfac
 real(dp) :: r0(3), gcoef(n)
 
 r0=0._dp

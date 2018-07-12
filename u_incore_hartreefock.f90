@@ -10,11 +10,11 @@ real(dp) :: p1(nb,nb),p2(nb,nb),p3(nb,nb),ptot(nb,nb)
 real(dp) :: folda(nb,nb,7),fdiisa(nb,nb),foldb(nb,nb,7),fdiisb(nb,nb)
 real(dp) :: hcore(nb,nb), sminhalf(nb,nb)
 real(dp) :: resmaxa,resmaxb,resida(nb,nb),residoa(nb,nb,7),residb(nb,nb),residob(nb,nb,7)
-real(dp) :: bmat(8,8),vecb(8),solb(8),veca(8)
-real(dp) :: eigsa(nb),eigsb(nb), eeold, deltae, deltapa, deltapb, fac, fac1, fac2
+real(dp) :: bmat(8,8),vecb(8),solb(8)
+real(dp) :: eigsa(nb),eigsb(nb), eeold, deltae, deltapa, deltapb, fac
 real(dp), parameter :: conv=1.d-6, conve=1.d-9
-integer(i4b) :: i, j,ij,k,jk,kl,ijkl ,iocc,a,b,c,d,ii, ia, ja, ka, la, mu, nu,oo(14)
-logical(lgt) :: diis, sameabab, allsame, sameij, samejk, samekl
+integer(i4b) :: i, j,ij,k,jk,kl,ijkl, ia, ja, ka, la, mu, nu,oo(14)
+logical(lgt) :: diis, sameabab, allsame, sameij, samekl
 
 ! Build the guess for the Fock matrix - either core hamiltonian or Huckel
 if (densup) then
@@ -244,7 +244,7 @@ do i=1,maxiter
     end if
     if (diis) then
 !      build b matrix
-       b=0._dp
+       bmat=0._dp
        bmat(8,:)=-1._dp; bmat(:,8)=-1._dp; bmat(8,8)=0._dp
        vecb=0._dp ; vecb(8)=-1._dp
        do j=1,7

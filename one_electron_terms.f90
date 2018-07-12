@@ -13,7 +13,7 @@ real(dp), intent(out) :: s, t, v
 
 integer(i4b) :: nuc, ab, za, zb, zza, zzab
 real(dp) :: sterm, tterm, vterm
-real(dp) :: fac1, fac2, fac3, fac4, fac5, hh
+real(dp) :: fac1, fac2, fac3, fac5
 real(dp) :: Cx(3),zc, rpc2, qr2
 
 sterm=0._dp
@@ -59,9 +59,9 @@ integer(i4b), intent(in) :: sh1, sh2
 real(dp), intent(out) :: s(3), t(3), v(3)
 
 integer(i4b) :: nuc, ab, za, zb, zza, zzab
-real(dp) :: sss, ssp(3),tss, rbp(3), a,b,b2, vssm(0:1)
-real(dp) :: fac1, fac2, fac3, fac4, fac5, bfuncs(0:1)
-real(dp) :: Cx(3),zc, Pxs(3), rcp(3), rcp2, efac, qr2,vterm(3)
+real(dp) :: sss, ssp(3),tss, rbp(3), vssm(0:1)
+real(dp) :: fac1, fac2, fac3, bfuncs(0:1)
+real(dp) :: Cx(3), zc, rcp(3), rcp2, efac, qr2,vterm(3)
 
 ab=ind2(sh1,sh2) 
 s=0._dp
@@ -117,9 +117,9 @@ integer(i4b), intent(in) :: sh1, sh2
 real(dp), intent(out) :: s(4), t(4), v(4)
 
 integer(i4b) :: nuc, ab, za, zb, zza, zzab
-real(dp) :: sss, ssp(3),tss, rbp(3), a,b,b2, vssm(0:1)
-real(dp) :: fac1, fac2, fac3, fac4, fac5, bfuncs(0:1), gg
-real(dp) :: Cx(3),zc, Pxs(3), rcp(3), rcp2, efac, qr2,vterm(4)
+real(dp) :: sss, ssp(3),tss, rbp(3), vssm(0:1)
+real(dp) :: fac1, fac2, fac3, bfuncs(0:1), gg
+real(dp) :: Cx(3),zc, rcp(3), rcp2, efac, qr2,vterm(4)
 
 ab=ind2(sh1,sh2) 
 s=0._dp
@@ -176,7 +176,7 @@ integer(i4b), intent(in) :: sh1, sh2
 real(dp), intent(out) :: s(3,3), t(3,3), v(3,3)
 
 integer(i4b) :: nuc, ab, za, zb, zza, zzab, ii, jj
-real(dp) :: fac1, fac2, fac3, fac4, fac5, bfuncs(0:1)
+real(dp) :: fac1, fac2, fac3
 real(dp) :: Cx(3),zc, rcp(3), rcp2, efac, qr2
 real(dp) :: sss, ssp(3),tss,tsp(3), spp(3,3), vsp0(3),vsp1(3),vpp(3,3)
 real(dp) :: rbp(3), rap(3), vssm(0:2)
@@ -255,10 +255,10 @@ integer(i4b), intent(in) :: sh1, sh2
 real(dp), intent(out) :: so(3,4), to(3,4), vo(3,4)
 
 integer(i4b) :: nuc, ab, za, zb, zza, zzab, ii, jj
-real(dp) :: fac1, fac2, fac3, fac4, fac5, bfuncs(0:1)
+real(dp) :: fac1, fac2, fac3
 real(dp) :: Cx(3),zc, rcp(3), rcp2, efac, qr2
 real(dp) :: sss, ssp(3),tss,tsp(3), spp(3,3), vsp0(3),vsp1(3),vmat(4,4)
-real(dp) :: tpp(3,3),     sps(3),    tps(3), vps0(3),vps1(3)
+real(dp) :: tpp(3,3), sps(3), tps(3)
 real(dp) :: rbp(3), rap(3), vssm(0:2), s(4,4), t(4,4), v(4,4)
 
 s=0._dp
@@ -352,10 +352,10 @@ integer(i4b), intent(in) :: sh1, sh2
 real(dp), intent(out) :: s(4,4), t(4,4), v(4,4)
 
 integer(i4b) :: nuc, ab, za, zb, zza, zzab, ii, jj
-real(dp) :: fac1, fac2, fac3, fac4, fac5, bfuncs(0:1)
+real(dp) :: fac1, fac2, fac3
 real(dp) :: Cx(3),zc, rcp(3), rcp2, efac, qr2
 real(dp) :: sss, ssp(3),tss,tsp(3), spp(3,3), vsp0(3),vsp1(3),vmat(4,4)
-real(dp) :: tpp(3,3),     sps(3),    tps(3), vps0(3),vps1(3)
+real(dp) :: tpp(3,3), sps(3), tps(3)
 real(dp) :: rbp(3), rap(3), vssm(0:2), gg
 
 s=0._dp
@@ -452,8 +452,8 @@ implicit none
 integer(i4b), intent(in) :: sh1, sh2
 real(dp), intent(out) :: s(5), t(5), v(5)
 
-integer(i4b) :: nuc, ab, za, zb, zza, zzab, i, ii, jj, j, jm1, jp1, m
-real(dp) :: fac1, fac2, fac3, fac4, fac5, bfuncs(0:2)
+integer(i4b) :: nuc, ab, za, zb, zza, zzab, ii, jj, j, jm1, jp1, m
+real(dp) :: fac1, fac2, fac3
 real(dp) :: Cx(3),zc, rcp(3), rcp2, efac, qr2, q, zaop
 real(dp) :: smat(10), tmat(10),vmat(10,0:2), csmat(6),ctmat(6),cvmat(6)
 real(dp) :: rbp(3), bfac(0:2)
@@ -573,7 +573,7 @@ integer(i4b), intent(in) :: sh1, sh2
 real(dp), intent(out) :: s(3,5), t(3,5), v(3,5)
 
 integer(i4b) :: nuc, ab, za, zb, zza, zzab, ii, jj, jp1, j, jm1, ip1,i,im1, m
-real(dp) :: fac1, fac2, fac3, fac4, fac5, zaop, q
+real(dp) :: fac1, fac2, fac3, zaop, q
 real(dp) :: Cx(3),zc, rcp(3), rcp2, efac, qr2
 real(dp) :: smat(4,10), tmat(4,10),vmat(4,10,0:3), csmat(3,6),ctmat(3,6),cvmat(3,6)
 real(dp) :: rbp(3), bfac(0:3), rap(3)
@@ -711,9 +711,9 @@ implicit none
 integer(i4b), intent(in) :: sh1, sh2
 real(dp), intent(out) :: s(5,5), t(5,5), v(5,5)
 
-integer(i4b) :: nuc, ab, za, zb, zza, zzab, ii, jj, jp1, j, jm1, ip1,i,im1, m, k,kk, jrec
-real(dp) :: fac1, fac2, fac3, fac4, fac5, intmat(6,5)
-real(dp) :: Cx(3),zc, rcp(3), rcp2, efac, qr2, q, zaop, zbop
+integer(i4b) :: nuc, ab, za, zb, zza, zzab, ii, jj, jp1, j, jm1, ip1, i, im1, m, jrec
+real(dp) :: fac1
+real(dp) :: Cx(3),zc, rcp(3), rcp2, efac, qr2, q
 real(dp) :: smat(10,10), tmat(10,10),vmat(10,10,0:4), csmat(6,6),ctmat(6,6),cvmat(6,6)
 real(dp) :: rbp(3), bfac(0:4), rap(3), smatl(6,5), tmatl(6,5), vmatl(6,5)
 
@@ -920,8 +920,8 @@ implicit none
 integer(i4b), intent(in) :: sh1, sh2
 real(dp), intent(out) :: s(5,4), t(5,4), v(5,4)
 
-integer(i4b) :: nuc, ab, za, zb, zza, zzab, ii, jj, jp1, j, jm1, ip1,i,im1, m, jrec
-real(dp) :: fac1, fac2, fac3, fac4, fac5, zaop, zbop, q
+integer(i4b) :: nuc, ab, za, zb, zza, zzab, ii, jj, jp1, ip1,i,im1, m, jrec
+real(dp) :: fac1, fac2, fac3, zbop, q
 real(dp) :: Cx(3),zc, rcp(3), rcp2, efac, qr2
 real(dp) :: smat(10,4), tmat(10,4),vmat(10,4,0:3), csmat(6,4),ctmat(6,4),cvmat(6,4)
 real(dp) :: rbp(3), bfac(0:3), rap(3)

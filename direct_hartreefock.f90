@@ -14,10 +14,10 @@ integer(i4b), parameter :: maxiter=25, ndiis=8
 real(dp) :: f(nb,nb),fob(nb,nb), cmat(nb,nb), cmatob(nb,nb), p(nb,nb), pold(nb,nb), mprod,invseigs(nb,nb)
 real(dp) :: fold(nb,nb,ndiis),fdiis(nb,nb), hcore(nb,nb), sminhalf(nb,nb), delp(nb,nb), delf(nb,nb), faobold(nb,nb)
 real(dp) :: resmax,resid(nb,nb),resido(nb,nb,ndiis),eo(ndiis),shftmat(nb,nb)
-real(dp), allocatable :: vecb(:),solb(:),vec(:),bmat(:,:)
-real(dp) :: eigs(nb), eeold, deltae, deltap, fac, fac1, fac2, trace, thresh,cyctime,tottime
+real(dp), allocatable :: vecb(:),solb(:),bmat(:,:)
+real(dp) :: eigs(nb), eeold, deltae, deltap, thresh,cyctime,tottime
 real(dp), parameter :: conv=1.d-5, conve=5.d-8, lowthresh=5.d-7, fdifffac=0.1_dp
-integer(i4b) :: i,j,k,jk,iocc,a,b,c,d,ii, ia, ja, ka, la, mu, nu,nprstot,nprsscr, nusediis,nfull
+integer(i4b) :: i,j,k,jk,ii, mu, nu, nusediis,nfull
 logical(lgt) :: diis, fullfock, uselevshft
 
 ! First obtain the matrix S^-1/2 that orthogonalizes the basis
@@ -100,19 +100,19 @@ do i=1,maxiter
     eeold=eelec
     if (fullfock.and.(i.eq.1)) then
        call fock_build_initial_diag(f,p,thresh)
-       call fock_build_non_diag(f,p,thresh,nprsscr)
+       call fock_build_non_diag(f,p,thresh)
        !fullfock=.false.
        nfull=0
     else if (fullfock) then
        call fock_build_diag(f,p,thresh)
-       call fock_build_non_diag(f,p,thresh,nprsscr)
+       call fock_build_non_diag(f,p,thresh)
        fullfock=.false.
        nfull=0
     else
        delp=p-pold
        delf=0._dp
        call fock_build_diag(delf,delp,thresh)
-       call fock_build_non_diag(delf,delp,thresh*fdifffac,nprsscr)
+       call fock_build_non_diag(delf,delp,thresh*fdifffac)
        f=faobold+delf
        nfull=nfull+1
        if (nfull.eq.15) then
@@ -206,8 +206,8 @@ do i=1,maxiter
 
     deltap=maxval(abs(p-pold))
     call time_diff(1,cyctime,tottime)
-    write (9,'(I3,3F20.10,i14,2F12.2)') i,etot,deltae,deltap,nprsscr,cyctime,tottime
-    write (*,'(I3,3F20.10,i14,2F12.2)') i,etot,deltae,deltap,nprsscr,cyctime,tottime
+    write (9,'(I3,3F20.10,2F12.2)') i,etot,deltae,deltap,cyctime,tottime
+    write (*,'(I3,3F20.10,2F12.2)') i,etot,deltae,deltap,cyctime,tottime
     if (abs(deltae).lt.conve) then
         if ((deltap.lt.conv).and.(i.gt.1)) then
              write (9,*) "SCF Converged"

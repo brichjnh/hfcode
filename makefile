@@ -13,7 +13,7 @@
 # FFLAGS= -O3 -framework accelerate -ffast-math -fopenmp
 # FFLAGS= -O3 -framework accelerate -fopenmp
 # FFLAGS= -O3 -framework accelerate -fcheck=bounds
-FFLAGS= -O0 -framework accelerate -fcheck=bounds -fopenmp
+FFLAGS= -O0 -framework accelerate -fcheck=bounds -fopenmp -Wall
 # FFLAGS= -O3 -framework accelerate 
 #
 ############################################################

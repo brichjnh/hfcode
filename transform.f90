@@ -2,7 +2,6 @@ subroutine transform1e()
 use nrtype; use molprops
 implicit none
 
-integer(i4b) :: i
 real(dp) :: hcore(nb,nb)
 
 allocate (m1e(nb,nb))
@@ -122,7 +121,7 @@ subroutine calcmoenergies()
 use nrtype ; use molprops
 implicit none
 
-integer(i4b) :: i,j,k
+integer(i4b) :: i, j
 
 allocate(moen(nb))
 

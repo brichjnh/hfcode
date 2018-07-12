@@ -61,7 +61,7 @@ real(dp), intent(in) :: a(n,n), b(n)
 real(dp), intent(out) :: x(n)
 
 integer(i4b) :: lda, lwork, info, ipiv(n)
-character(len=1) :: jobz,uplo
+character(len=1) :: uplo
 real(dp) :: mat(n,n), bmat(n,1), work(8*n)
 
 uplo='U'  ! upper triangle given on input (actually both are...)
