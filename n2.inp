@@ -1,0 +1,10 @@
+2
+water molecule
+HUCKEL N
+UHF N 0
+MP2 N 
+CCSD N 
+PRINT 3
+ncore 1
+N   0.00000000  0.00000000   0.0000
+N   0.   1.2  0.

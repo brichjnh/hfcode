@@ -1,0 +1,9 @@
+1
+water molecule
+HUCKEL N
+UHF Y 1
+MP2 N 
+CCSD N 
+PRINT 4
+ncore 1
+Li  0.00000000  0.00000000   0.0000

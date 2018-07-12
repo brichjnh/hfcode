@@ -1,0 +1,12 @@
+4
+water molecule
+HUCKEL N
+UHF N 0
+MP2 N 
+CCSD N 
+PRINT 3
+ncore 0
+H  0. 0. 0.
+O  0.1 0.1 1.3
+O  0. 1.4 1.35
+H 1.2 1.3 1.4
